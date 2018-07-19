@@ -84,7 +84,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
             ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION, android.Manifest.permission.ACCESS_COARSE_LOCATION}, 101);
         }
-
         bluetoothIcon = (ImageView) findViewById(R.id.bluetoothButton);
         bluetoothIcon.setImageDrawable(getActivityIcon(this, "com.android.chrome","com.google.android.apps.chrome.Main"));
         //wifiIcon = (ImageView) findViewById(R.id.wifiButton);
