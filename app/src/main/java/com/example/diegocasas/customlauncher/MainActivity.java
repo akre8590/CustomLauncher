@@ -24,8 +24,10 @@ import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.media.Image;
 import android.os.Build;
 import android.os.PersistableBundle;
+import android.provider.Settings;
 import android.support.annotation.RequiresApi;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -67,9 +69,9 @@ import services.TimeService;
 public class MainActivity extends AppCompatActivity implements LocationListener {
     public final List blockedKeys = new ArrayList(Arrays.asList(KeyEvent.KEYCODE_VOLUME_DOWN, KeyEvent.KEYCODE_VOLUME_UP));
     private static final String TAG = "MainActivity";
-    ImageView bluetoothIcon, wifiIcon, settingsIcon, cameraIcon;
-    TextView bluetoothName, wifiName, settingsName, cameraName, status, locationText;
-    Button admin, logout, jobService;
+    ImageView bluetoothIcon, explorerIcon, settingsIcon, admCensalIcon, settingsAll, settingsWifi, settingsBluetooth, settings3G, settingsLocation,call, sms, lock, unlock, camera;
+    TextView bluetoothName, explorerName, settingsName, admCensalName, locationText;
+
     boolean isAdmin = false;
 
     LocationManager locationManager;
@@ -80,70 +82,160 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        if (ContextCompat.checkSelfPermission(getApplicationContext(), android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getApplicationContext(), android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-
-            ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION, android.Manifest.permission.ACCESS_COARSE_LOCATION}, 101);
+        PackageManager pm = this.getPackageManager();
+        if (isPackageInstalled("com.android.filemanager", pm)) {
+            //Toast.makeText(this, "Paquetes necesarios ya instalados", Toast.LENGTH_SHORT).show();
+            explorerIcon = (ImageView) findViewById(R.id.explorer);
+            explorerIcon.setImageDrawable(getActivityIcon(this, "com.android.filemanager", "com.android.filemanager.MainActivity"));
+            explorerName = (TextView) findViewById(R.id.explorerName);
+            explorerName.setText(getAppName("com.android.filemanager"));
+            addClickListenerExplorer();
+        }else{
+            Toast.makeText(this, "No se encuentra la aplicación: " + getAppName("com.android.filemanager"), Toast.LENGTH_SHORT).show();
         }
-        bluetoothIcon = (ImageView) findViewById(R.id.bluetoothButton);
-        bluetoothIcon.setImageDrawable(getActivityIcon(this, "com.android.chrome","com.google.android.apps.chrome.Main"));
-        //wifiIcon = (ImageView) findViewById(R.id.wifiButton);
-        //wifiIcon.setImageDrawable(getActivityIcon(this, "com.embarcadero.AdmCensal", "com.embarcadero.firemonkey.FMXNativeActivity"));
-        settingsIcon = (ImageView) findViewById(R.id.settingsButton);
-        settingsIcon.setImageDrawable(getActivityIcon(this, "com.android.settings", "com.android.settings.Settings"));
+        if (isPackageInstalled("com.android.chrome", pm)) {
 
-        cameraIcon = (ImageView) findViewById(R.id.camera);
-        cameraIcon.setImageDrawable(getActivityIcon(this, "com.lenovo.camera","com.android.camera.Camera"));
-        cameraName = (TextView)findViewById(R.id.cameraName);
-        cameraName.setText(getAppName("com.lenovo.camera"));
+            bluetoothName = (TextView) findViewById(R.id.bluetoothName);
+            bluetoothName.setText(getAppName("com.android.chrome"));
+            bluetoothIcon = (ImageView) findViewById(R.id.bluetoothButton);
+            bluetoothIcon.setImageDrawable(getActivityIcon(this, "com.android.chrome", "com.google.android.apps.chrome.Main"));
+            addClickListenerBluetooth();
+        }else{
+            Toast.makeText(this, "No se encuentra la aplicación: " + getAppName("com.android.chrome"), Toast.LENGTH_SHORT).show();
+        }
+        if (isPackageInstalled("com.android.settings", pm)){
+            settingsIcon = (ImageView) findViewById(R.id.settingsButton);
+            settingsIcon.setImageDrawable(getActivityIcon(this, "com.android.settings", "com.android.settings.Settings"));
+            settingsName = (TextView) findViewById(R.id.settingsName);
+            //settingsName.setText(getAppName("com.android.settings"));
+            settingsName.setText("Settings");
+            settingsIcon.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    addClickListenerSettings();
+                }
+            });
+        } else {
+            Toast.makeText(this, "No se encuentra la aplicación: " + getAppName("com.android.settings"), Toast.LENGTH_SHORT).show();
+        }
+        if (isPackageInstalled("com.embarcadero.AdmCensal", pm)){
+            admCensalIcon = (ImageView) findViewById(R.id.admCensal);
+            admCensalIcon.setImageDrawable(getActivityIcon(this, "com.embarcadero.AdmCensal", "com.embarcadero.firemonkey.FMXNativeActivity"));
+            admCensalName = (TextView) findViewById(R.id.admCensaltxt);
+            admCensalName.setText(getAppName("com.embarcadero.AdmCensal"));
 
-        settingsName = (TextView)findViewById(R.id.settingsName);
-        //settingsName.setText(getAppName("com.android.settings"));
-        settingsName.setText("Settings");
-        bluetoothName = (TextView)findViewById(R.id.bluetoothName);
-        bluetoothName.setText(getAppName("com.android.chrome"));
-        //wifiName = (TextView)findViewById(R.id.wifiName);
-        //wifiName.setText(getAppName("com.embarcadero.AdmCensal"));
-        admin = (Button)findViewById(R.id.buttonAdmin);
-        logout = (Button) findViewById(R.id.buttonLogOut);
-        jobService = (Button)findViewById(R.id.scheduleJob);
-        status = (TextView)findViewById(R.id.statusLabel);
-        locationText = (TextView)findViewById(R.id.location);
+            addClickListenerAdmCensal();
 
-        addClickListenerBluetooth();
-        //addClickListenerWifi();
-        addClickListenerCamera();
-        status();
-        preventStatusBarExpansion(this);
+         } else {
+                Toast.makeText(this, "No se encuentrá la aplicación: " + getAppName("com.embarcadero.AdmCensal"), Toast.LENGTH_SHORT).show();
+         }
 
-        settingsIcon.setOnClickListener(new View.OnClickListener() {
+        settingsAll = (ImageView) findViewById(R.id.settingsAll);
+        settingsAll.setImageDrawable(getResources().getDrawable(R.drawable.settings));
+        settingsAll.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                addClickListenerSettings();
+                if (isAdmin) {
+                    Intent launchIntent = getPackageManager().getLaunchIntentForPackage("com.android.settings");
+                    startActivity(launchIntent);
+                } else {
+                    Toast.makeText(MainActivity.this, "No cuenta con los permisos", Toast.LENGTH_SHORT).show();
+                }
             }
         });
-        admin.setOnClickListener(new View.OnClickListener() {
-          @Override
-          public void onClick(View v) {
-              showAddItemDialog(MainActivity.this);
-          }
-      });
-        logout.setOnClickListener(new View.OnClickListener() {
+
+        settingsWifi = (ImageView) findViewById(R.id.settingsWifi);
+        settingsWifi.setImageDrawable(getResources().getDrawable(R.drawable.ic_signal_wifi_4_bar_black_48dp));
+        settingsWifi.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(Settings.ACTION_WIFI_SETTINGS));
+            }
+        });
+
+        settingsBluetooth = (ImageView) findViewById(R.id.settingsBluetooth);
+        settingsBluetooth.setImageDrawable(getResources().getDrawable(R.drawable.ic_bluetooth_black_48dp));
+        settingsBluetooth.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(Settings.ACTION_BLUETOOTH_SETTINGS));
+            }
+        });
+
+        settings3G = (ImageView)findViewById(R.id.settings3G);
+        settings3G.setImageDrawable(getResources().getDrawable(R.drawable.ic_signal_cellular_4_bar_black_48dp));
+        settings3G.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent();
+                intent.setComponent(new ComponentName("com.android.settings","com.android.settings.Settings$DataUsageSummaryActivity"));
+                startActivity(intent);
+            }
+        });
+
+        settingsLocation = (ImageView)findViewById(R.id.settingsLocation);
+        settingsLocation.setImageDrawable(getResources().getDrawable(R.drawable.ic_location_on_black_48dp));
+        settingsLocation.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS));
+            }
+        });
+
+
+        call = (ImageView) findViewById(R.id.call);
+        call.setImageDrawable(getResources().getDrawable(R.drawable.ic_call_black_48dp));
+        call.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        });
+        sms = (ImageView) findViewById(R.id.sms);
+        sms.setImageDrawable(getResources().getDrawable(R.drawable.ic_textsms_black_48dp));
+        sms.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        });
+
+        camera = (ImageView) findViewById(R.id.cameraSettings);
+        camera.setImageDrawable(getResources().getDrawable(R.drawable.ic_camera_alt_black_48dp));
+        camera.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent launchIntent = getPackageManager().getLaunchIntentForPackage("com.lenovo.camera");
+                startActivity(launchIntent);
+            }
+        });
+
+        lock = (ImageView) findViewById(R.id.lock);
+        lock.setImageDrawable(getResources().getDrawable(R.drawable.ic_lock_black_48dp));
+        lock.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showAddItemDialog(MainActivity.this);
+
+            }
+        });
+        unlock = (ImageView) findViewById(R.id.unlock);
+        unlock.setImageDrawable(getResources().getDrawable(R.drawable.ic_lock_open_black_48dp));
+        unlock.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 addClickListenerLogout();
             }
         });
-        jobService.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-               getLocation();
-            }
-        });
+
+        preventStatusBarExpansion(this);
 
         if (!isAdmin){
-            logout.setVisibility(View.INVISIBLE);
+            unlock.setVisibility(View.INVISIBLE);
+
         }
     }
+
     /******ClickListener de los botones*******/
     public void addClickListenerBluetooth(){
         bluetoothIcon.setOnClickListener(new View.OnClickListener() {
@@ -155,24 +247,24 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         });
     }
 
-    public void addClickListenerCamera(){
-        cameraIcon.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent launchIntent = getPackageManager().getLaunchIntentForPackage("com.lenovo.camera");
-                startActivity(launchIntent);
-            }
-        });
-    }
-    /***public void addClickListenerWifi(){
-        wifiIcon.setOnClickListener(new View.OnClickListener() {
+    public void addClickListenerAdmCensal(){
+        admCensalIcon.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent launchIntent = getPackageManager().getLaunchIntentForPackage("com.embarcadero.AdmCensal");
                 startActivity(launchIntent);
             }
         });
-    }***/
+    }
+    public void addClickListenerExplorer(){
+        explorerIcon.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent launchIntent = getPackageManager().getLaunchIntentForPackage("com.android.filemanager");
+                startActivity(launchIntent);
+            }
+        });
+    }
     public void addClickListenerSettings(){
 
         if (isAdmin) {
@@ -184,20 +276,15 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     }
     private void addClickListenerLogout() {
         isAdmin = false;
-        status();
-        admin.setVisibility(View.VISIBLE);
-        logout.setVisibility(View.INVISIBLE);
+
+        lock.setVisibility(View.VISIBLE);
+        unlock.setVisibility(View.INVISIBLE);
+
+
         Toast.makeText(this, "Sin permisos de admin", Toast.LENGTH_SHORT).show();
     }
     /*****Privilegios (Admin - Entrevistador)****/
-    private void status(){
 
-        if (isAdmin){
-            status.setText("PERMISOS: ADMINISTRADOR");
-        } else {
-            status.setText("PERMISOS: ENTREVISTADOR");
-        }
-    }
     /*****Obtener icono de la app******/
     public static Drawable getActivityIcon(Context context, String packageName, String activityName) {
         PackageManager pm = context.getPackageManager();
@@ -225,7 +312,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         Toast.makeText(this, "Opción Deshabilitada", Toast.LENGTH_SHORT).show();
     }
     /*****Deshabilitar control de apagado (presión larga)*****/
-    @Override
+   /** @Override
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
         if(!hasFocus) {
@@ -282,14 +369,13 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                         String pass = String.valueOf(taskEditText.getText());
                         if (pass.equals("1234")){
                             isAdmin = true;
-                            status();
-                            admin.setVisibility(View.INVISIBLE);
-                            logout.setVisibility(View.VISIBLE);
+                            lock.setVisibility(View.INVISIBLE);
+                            unlock.setVisibility(View.VISIBLE);
                             Toast.makeText(MainActivity.this, "Contraseña correcta", Toast.LENGTH_SHORT).show();
                         } else {
                             Toast.makeText(MainActivity.this, "Contraseña incorrecta", Toast.LENGTH_SHORT).show();
                             isAdmin = false;
-                            status();
+
                         }
                     }
                 })
@@ -351,7 +437,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     @Override
     public void onStatusChanged(String provider, int status, Bundle extras) {
     }
-
     @Override
     public void onProviderEnabled(String provider) {
 
@@ -360,5 +445,13 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     @Override
     public void onProviderDisabled(String provider) {
         Toast.makeText(this, "Favor de habilitar su GPS", Toast.LENGTH_SHORT).show();
+    }
+    private boolean isPackageInstalled(String packagename, PackageManager packageManager) {
+        try {
+            packageManager.getPackageInfo(packagename, 0);
+            return true;
+        } catch (PackageManager.NameNotFoundException e) {
+            return false;
+        }
     }
 }
