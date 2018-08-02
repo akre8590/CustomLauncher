@@ -69,11 +69,9 @@ import services.TimeService;
 public class MainActivity extends AppCompatActivity implements LocationListener {
     public final List blockedKeys = new ArrayList(Arrays.asList(KeyEvent.KEYCODE_VOLUME_DOWN, KeyEvent.KEYCODE_VOLUME_UP));
     private static final String TAG = "MainActivity";
-    ImageView bluetoothIcon, explorerIcon, settingsIcon, admCensalIcon, settingsAll, settingsWifi, settingsBluetooth, settings3G, settingsLocation,call, sms, lock, unlock, camera;
-    TextView bluetoothName, explorerName, settingsName, admCensalName, locationText;
-
+    ImageView chromeIcon, explorerIcon, capaIcon, admCensalIcon, settingsAll, settingsWifi, settingsBluetooth, settings3G, settingsLocation,call, sms, lock, unlock, camera, mccIcon, transIcon;
+    TextView chromeName, explorerName, capaName, admCensalName, locationText, mccName, transName;
     boolean isAdmin = false;
-
     LocationManager locationManager;
 
     @SuppressLint("ResourceType")
@@ -82,54 +80,73 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        showElementsLayout();
+        showBarElements();
+        preventStatusBarExpansion(this);
+
+        if (!isAdmin){
+            unlock.setVisibility(View.INVISIBLE);
+        }
+    }
+    /******Elements layout*********/
+    public void showElementsLayout(){
         PackageManager pm = this.getPackageManager();
         if (isPackageInstalled("com.android.filemanager", pm)) {
-            //Toast.makeText(this, "Paquetes necesarios ya instalados", Toast.LENGTH_SHORT).show();
             explorerIcon = (ImageView) findViewById(R.id.explorer);
             explorerIcon.setImageDrawable(getActivityIcon(this, "com.android.filemanager", "com.android.filemanager.MainActivity"));
             explorerName = (TextView) findViewById(R.id.explorerName);
             explorerName.setText(getAppName("com.android.filemanager"));
             addClickListenerExplorer();
         }else{
-            Toast.makeText(this, "No se encuentra la aplicación: " + getAppName("com.android.filemanager"), Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "No se encuentra la aplicación FileManager ", Toast.LENGTH_SHORT).show();
         }
         if (isPackageInstalled("com.android.chrome", pm)) {
-
-            bluetoothName = (TextView) findViewById(R.id.bluetoothName);
-            bluetoothName.setText(getAppName("com.android.chrome"));
-            bluetoothIcon = (ImageView) findViewById(R.id.bluetoothButton);
-            bluetoothIcon.setImageDrawable(getActivityIcon(this, "com.android.chrome", "com.google.android.apps.chrome.Main"));
-            addClickListenerBluetooth();
+            chromeName = (TextView) findViewById(R.id.chromeName);
+            chromeName.setText(getAppName("com.android.chrome"));
+            chromeIcon = (ImageView) findViewById(R.id.chromeButton);
+            chromeIcon.setImageDrawable(getActivityIcon(this, "com.android.chrome", "com.google.android.apps.chrome.Main"));
+            addClickListenerChrome();
         }else{
-            Toast.makeText(this, "No se encuentra la aplicación: " + getAppName("com.android.chrome"), Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "No se encuentra la aplicación Browser ", Toast.LENGTH_SHORT).show();
         }
-        if (isPackageInstalled("com.android.settings", pm)){
-            settingsIcon = (ImageView) findViewById(R.id.settingsButton);
-            settingsIcon.setImageDrawable(getActivityIcon(this, "com.android.settings", "com.android.settings.Settings"));
-            settingsName = (TextView) findViewById(R.id.settingsName);
-            //settingsName.setText(getAppName("com.android.settings"));
-            settingsName.setText("Settings");
-            settingsIcon.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    addClickListenerSettings();
-                }
-            });
+        if (isPackageInstalled("io.cordova.CAPACITACION", pm)){
+            capaIcon = (ImageView) findViewById(R.id.capaButton);
+            capaIcon.setImageDrawable(getActivityIcon(this, "io.cordova.CAPACITACION", "io.cordova.CAPACITACION.MainActivity"));
+            capaName = (TextView) findViewById(R.id.capaName);
+            capaName.setText(getAppName("io.cordova.CAPACITACION"));
+            addClickListenerCapa();
         } else {
-            Toast.makeText(this, "No se encuentra la aplicación: " + getAppName("com.android.settings"), Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "No se encuentra la aplicación CAAP ", Toast.LENGTH_SHORT).show();
         }
         if (isPackageInstalled("com.embarcadero.AdmCensal", pm)){
             admCensalIcon = (ImageView) findViewById(R.id.admCensal);
             admCensalIcon.setImageDrawable(getActivityIcon(this, "com.embarcadero.AdmCensal", "com.embarcadero.firemonkey.FMXNativeActivity"));
             admCensalName = (TextView) findViewById(R.id.admCensaltxt);
             admCensalName.setText(getAppName("com.embarcadero.AdmCensal"));
-
             addClickListenerAdmCensal();
+        } else {
+            Toast.makeText(this, "No se encuentrá la aplicación AdmCensal", Toast.LENGTH_SHORT).show();
+        }
+        if (isPackageInstalled("com.embarcadero.mcc", pm)){
+            mccIcon = (ImageView) findViewById(R.id.mcc);
+            mccIcon.setImageDrawable(getActivityIcon(this, "com.embarcadero.mcc","com.embarcadero.firemonkey.FMXNativeActivity"));
+            mccName = (TextView) findViewById(R.id.mccName);
+            mccName.setText(getAppName("com.embarcadero.mcc"));
+            addClickListenerMCC();
+        } else {
+            Toast.makeText(this, "No se encuentra la aplicación MCC",Toast.LENGTH_SHORT).show();
+        }
+        if (isPackageInstalled("com.example.diegocasas.myapplication",pm)){
+                transIcon = (ImageView) findViewById(R.id.transfer);
+                transIcon.setImageDrawable(getActivityIcon(this, "com.example.diegocasas.myapplication","com.example.diegocasas.myapplication.MainActivity"));
+                transName = (TextView) findViewById(R.id.transferName);
+                transName.setText(getAppName("com.example.diegocasas.myapplication"));
+                addClickListenerTrans();
+        } else {
 
-         } else {
-                Toast.makeText(this, "No se encuentrá la aplicación: " + getAppName("com.embarcadero.AdmCensal"), Toast.LENGTH_SHORT).show();
-         }
-
+        }
+    }
+    public void showBarElements(){
         settingsAll = (ImageView) findViewById(R.id.settingsAll);
         settingsAll.setImageDrawable(getResources().getDrawable(R.drawable.settings));
         settingsAll.setOnClickListener(new View.OnClickListener() {
@@ -143,7 +160,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 }
             }
         });
-
         settingsWifi = (ImageView) findViewById(R.id.settingsWifi);
         settingsWifi.setImageDrawable(getResources().getDrawable(R.drawable.ic_signal_wifi_4_bar_black_48dp));
         settingsWifi.setOnClickListener(new View.OnClickListener() {
@@ -152,7 +168,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 startActivity(new Intent(Settings.ACTION_WIFI_SETTINGS));
             }
         });
-
         settingsBluetooth = (ImageView) findViewById(R.id.settingsBluetooth);
         settingsBluetooth.setImageDrawable(getResources().getDrawable(R.drawable.ic_bluetooth_black_48dp));
         settingsBluetooth.setOnClickListener(new View.OnClickListener() {
@@ -161,7 +176,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 startActivity(new Intent(Settings.ACTION_BLUETOOTH_SETTINGS));
             }
         });
-
         settings3G = (ImageView)findViewById(R.id.settings3G);
         settings3G.setImageDrawable(getResources().getDrawable(R.drawable.ic_signal_cellular_4_bar_black_48dp));
         settings3G.setOnClickListener(new View.OnClickListener() {
@@ -172,7 +186,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 startActivity(intent);
             }
         });
-
         settingsLocation = (ImageView)findViewById(R.id.settingsLocation);
         settingsLocation.setImageDrawable(getResources().getDrawable(R.drawable.ic_location_on_black_48dp));
         settingsLocation.setOnClickListener(new View.OnClickListener() {
@@ -181,14 +194,12 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 startActivity(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS));
             }
         });
-
-
         call = (ImageView) findViewById(R.id.call);
         call.setImageDrawable(getResources().getDrawable(R.drawable.ic_call_black_48dp));
         call.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                Toast.makeText(MainActivity.this, "Función deshabilitada", Toast.LENGTH_SHORT).show();
             }
         });
         sms = (ImageView) findViewById(R.id.sms);
@@ -196,10 +207,9 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         sms.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                Toast.makeText(MainActivity.this, "Función deshabilitada", Toast.LENGTH_SHORT).show();
             }
         });
-
         camera = (ImageView) findViewById(R.id.cameraSettings);
         camera.setImageDrawable(getResources().getDrawable(R.drawable.ic_camera_alt_black_48dp));
         camera.setOnClickListener(new View.OnClickListener() {
@@ -209,14 +219,12 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 startActivity(launchIntent);
             }
         });
-
         lock = (ImageView) findViewById(R.id.lock);
         lock.setImageDrawable(getResources().getDrawable(R.drawable.ic_lock_black_48dp));
         lock.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 showAddItemDialog(MainActivity.this);
-
             }
         });
         unlock = (ImageView) findViewById(R.id.unlock);
@@ -227,18 +235,11 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 addClickListenerLogout();
             }
         });
-
-        preventStatusBarExpansion(this);
-
-        if (!isAdmin){
-            unlock.setVisibility(View.INVISIBLE);
-
-        }
     }
 
     /******ClickListener de los botones*******/
-    public void addClickListenerBluetooth(){
-        bluetoothIcon.setOnClickListener(new View.OnClickListener() {
+    public void addClickListenerChrome(){
+        chromeIcon.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent launchIntent = getPackageManager().getLaunchIntentForPackage("com.android.chrome");
@@ -246,7 +247,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             }
         });
     }
-
     public void addClickListenerAdmCensal(){
         admCensalIcon.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -265,33 +265,45 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             }
         });
     }
-    public void addClickListenerSettings(){
-
-        if (isAdmin) {
-            Intent launchIntent = getPackageManager().getLaunchIntentForPackage("com.android.settings");
-            startActivity(launchIntent);
-        } else {
-            Toast.makeText(this, "No cuenta con permisos", Toast.LENGTH_SHORT).show();
-        }
+    public void addClickListenerCapa(){
+            capaIcon.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent launchIntent = getPackageManager().getLaunchIntentForPackage("io.cordova.CAPACITACION");
+                    startActivity(launchIntent);
+                }
+            });
+    }
+    public void addClickListenerMCC(){
+        mccIcon.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent launchIntent = getPackageManager().getLaunchIntentForPackage("com.embarcadero.mcc");
+                startActivity(launchIntent);
+            }
+        });
+    }
+    public void addClickListenerTrans(){
+        transIcon.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent launchIntent = getPackageManager().getLaunchIntentForPackage("com.example.diegocasas.myapplication");
+                startActivity(launchIntent);
+            }
+        });
     }
     private void addClickListenerLogout() {
         isAdmin = false;
-
         lock.setVisibility(View.VISIBLE);
         unlock.setVisibility(View.INVISIBLE);
-
-
         Toast.makeText(this, "Sin permisos de admin", Toast.LENGTH_SHORT).show();
     }
-    /*****Privilegios (Admin - Entrevistador)****/
-
     /*****Obtener icono de la app******/
     public static Drawable getActivityIcon(Context context, String packageName, String activityName) {
         PackageManager pm = context.getPackageManager();
         Intent intent = new Intent();
         intent.setComponent(new ComponentName(packageName, activityName));
         ResolveInfo resolveInfo = pm.resolveActivity(intent, 0);
-
         return resolveInfo.loadIcon(pm);
     }
     /*****Obtener nombre de la app******/
@@ -375,7 +387,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                         } else {
                             Toast.makeText(MainActivity.this, "Contraseña incorrecta", Toast.LENGTH_SHORT).show();
                             isAdmin = false;
-
                         }
                     }
                 })
@@ -383,17 +394,14 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 .create();
         dialog.show();
     }
-
     /***Programación de trabajo (Services)*****///
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     public void startJob(double lat, double lon){
         getLocation();
         ComponentName componentName = new ComponentName(this, ExampleServices.class);
-
         PersistableBundle bundle = new PersistableBundle();
         bundle.putDouble("lat", lat);
         bundle.putDouble("lon", lon);
-
         JobInfo info = new JobInfo.Builder(123,componentName)
                 .setRequiresCharging(true)
                 .setRequiredNetworkType(JobInfo.NETWORK_TYPE_UNMETERED)
@@ -409,7 +417,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             Log.d(TAG, "Job Scheduling failed");
         }
     }
-
     public void getLocation() {
         try {
             locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
@@ -419,7 +426,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             e.printStackTrace();
         }
     }
-
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     public void onLocationChanged(Location location) {
@@ -439,9 +445,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     }
     @Override
     public void onProviderEnabled(String provider) {
-
     }
-
     @Override
     public void onProviderDisabled(String provider) {
         Toast.makeText(this, "Favor de habilitar su GPS", Toast.LENGTH_SHORT).show();

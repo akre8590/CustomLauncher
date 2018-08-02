@@ -13,72 +13,114 @@
         android:layout_height="3dp"
         android:background="@android:color/darker_gray"/>
 
-    <ImageView
-        android:id="@+id/explorer"
-        android:layout_width="80dp"
-        android:layout_height="80dp"
-        android:layout_marginTop="80dp"
-        android:layout_marginLeft="45dp"
-        />
-    <TextView
-        android:id="@+id/explorerName"
-        android:layout_width="80dp"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="50dp"
-        android:textColor="#000000"
-        android:layout_below="@id/explorer"
-        />
-    <ImageView
-        android:id="@+id/settingsButton"
-        android:layout_width="80dp"
-        android:layout_height="80dp"
-        android:layout_marginTop="80dp"
-        android:layout_marginLeft="20dp"
-        android:layout_toRightOf="@id/explorer"/>
-    <TextView
-        android:id="@+id/settingsName"
-        android:layout_width="80dp"
-        android:layout_height="wrap_content"
-        android:textColor="#000000"
-        android:layout_marginLeft="35dp"
-        android:layout_toRightOf="@id/explorer"
-        android:layout_below="@id/settingsButton"/>
+    <!-- ADMSENSAL -->
     <ImageView
         android:id="@+id/admCensal"
-        android:layout_width="80dp"
-        android:layout_height="80dp"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
         android:layout_marginTop="80dp"
         android:layout_marginLeft="20dp"
-        android:layout_toRightOf="@id/settingsButton"/>
+        />
     <TextView
+        android:textSize="13dp"
+        android:gravity="center"
         android:id="@+id/admCensaltxt"
-        android:layout_width="80dp"
+        android:layout_width="70dp"
         android:layout_height="wrap_content"
         android:textColor="#000000"
-        android:layout_marginLeft="35dp"
-        android:layout_toRightOf="@id/settingsButton"
+        android:layout_marginLeft="20dp"
         android:layout_below="@id/admCensal"/>
-     <ImageView
-        android:id="@+id/bluetoothButton"
-        android:layout_width="80dp"
-        android:layout_height="80dp"
+    <!-- CAPACITACIÓN -->
+    <ImageView
+        android:id="@+id/capaButton"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
         android:layout_marginTop="80dp"
         android:layout_marginLeft="20dp"
         android:layout_toRightOf="@id/admCensal"/>
     <TextView
-        android:id="@+id/bluetoothName"
-        android:layout_width="80dp"
+        android:textSize="13dp"
+        android:gravity="center"
+        android:id="@+id/capaName"
+        android:layout_width="70dp"
         android:layout_height="wrap_content"
         android:textColor="#000000"
-        android:layout_marginLeft="35dp"
+        android:layout_marginLeft="20dp"
         android:layout_toRightOf="@id/admCensal"
-        android:layout_below="@id/explorer"/>
+        android:layout_below="@id/capaButton"/>
+    <!-- MCC -->
+    <ImageView
+        android:id="@+id/mcc"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:layout_marginTop="80dp"
+        android:layout_marginLeft="20dp"
+        android:layout_toRightOf="@id/capaButton"/>
     <TextView
-        android:id="@+id/tv_response"
-        android:layout_marginTop="300dp"
-        android:visibility="gone"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
+        android:textSize="13dp"
+        android:gravity="center"
+        android:id="@+id/mccName"
+        android:layout_width="70dp"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="20dp"
+        android:textColor="#000000"
+        android:layout_toRightOf="@id/capaButton"
+        android:layout_below="@id/mcc" />
+    <!-- EXPLORER -->
+    <ImageView
+        android:id="@+id/explorer"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:layout_marginTop="80dp"
+        android:layout_marginLeft="20dp"
+        android:layout_toRightOf="@id/mcc"/>
+    <TextView
+        android:textSize="13dp"
+        android:gravity="center"
+        android:id="@+id/explorerName"
+        android:layout_width="70dp"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="20dp"
+        android:textColor="#000000"
+        android:layout_toRightOf="@id/mccName"
+        android:layout_below="@id/explorer" />
+    <!-- BROWSER -->
+     <ImageView
+        android:id="@+id/chromeButton"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:layout_marginTop="80dp"
+        android:layout_marginLeft="20dp"
+        android:layout_toRightOf="@id/explorer"/>
+    <TextView
+        android:textSize="13dp"
+        android:gravity="center"
+        android:id="@+id/chromeName"
+        android:layout_width="70dp"
+        android:layout_height="wrap_content"
+        android:textColor="#000000"
+        android:layout_marginLeft="20dp"
+        android:layout_toRightOf="@id/explorerName"
+        android:layout_below="@id/chromeButton"/>
+    <!-- TRANS -->
+    <ImageView
+        android:id="@+id/transfer"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:layout_marginTop="30dp"
+        android:layout_below="@+id/admCensal"
+        android:layout_marginLeft="20dp"
+        />
+    <TextView
+        android:textSize="13dp"
+        android:gravity="center"
+        android:id="@+id/transferName"
+        android:layout_width="70dp"
+        android:layout_height="wrap_content"
+        android:textColor="#000000"
+        android:layout_marginLeft="20dp"
+        android:layout_below="@id/transfer"/>
+
 
     <!--  Barra   -->
 
