@@ -9,6 +9,7 @@ import android.app.Dialog;
 import android.app.job.JobInfo;
 import android.app.job.JobScheduler;
 import android.content.ComponentName;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -73,7 +74,9 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     TextView chromeName, explorerName, capaName, admCensalName, locationText, mccName, transName;
     boolean isAdmin = false;
     LocationManager locationManager;
+    int brightness = 204;
 
+    @RequiresApi(api = Build.VERSION_CODES.M)
     @SuppressLint("ResourceType")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,7 +90,24 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         if (!isAdmin){
             unlock.setVisibility(View.INVISIBLE);
         }
+        boolean settingsCanWrite = Settings.System.canWrite(MainActivity.this);
+        if (!settingsCanWrite){
+            Log.d("Brightness", "No se tiene permisos de escritura de opciones");
+            Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS);
+            startActivity(intent);
+        } else {
+            Log.d("Brightness", "Si se tuvo permisos");
+            ContentResolver cResolver = this.getApplicationContext().getContentResolver();
+            Settings.System.putInt(cResolver, Settings.System.SCREEN_BRIGHTNESS, brightness);
+        }
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        showElementsLayout();
+    }
+
     /******Elements layout*********/
     public void showElementsLayout(){
         PackageManager pm = this.getPackageManager();
@@ -97,14 +117,21 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             explorerName = (TextView) findViewById(R.id.explorerName);
             explorerName.setText(getAppName("com.android.filemanager"));
             addClickListenerExplorer();
-        }else{
-            Toast.makeText(this, "No se encuentra la aplicación FileManager ", Toast.LENGTH_SHORT).show();
+        } else if (isPackageInstalled("com.android.settings", pm)){
+            explorerIcon = (ImageView) findViewById(R.id.explorer);
+            explorerIcon.setImageDrawable(getActivityIcon(this, "com.android.settings", "com.android.settings.Settings$StorageSettingsActivity"));
+            explorerName = (TextView) findViewById(R.id.explorerName);
+            explorerName.setText("Gestor de archivos");
+            addClickListenerExplorer();
+        } else {
+            Toast.makeText(this, "Ningún gestor de archivos instalado", Toast.LENGTH_SHORT).show();
         }
-        if (isPackageInstalled("com.android.chrome", pm)) {
+        if (isPackageInstalled("com.embarcadero.OperaWeb", pm)) {
             chromeName = (TextView) findViewById(R.id.chromeName);
-            chromeName.setText(getAppName("com.android.chrome"));
+            //chromeName.setText(getAppName("com.embarcadero.OperaWeb"));
+            chromeName.setText("OPERA Web");
             chromeIcon = (ImageView) findViewById(R.id.chromeButton);
-            chromeIcon.setImageDrawable(getActivityIcon(this, "com.android.chrome", "com.google.android.apps.chrome.Main"));
+            chromeIcon.setImageDrawable(getActivityIcon(this, "com.embarcadero.OperaWeb", "com.embarcadero.firemonkey.FMXNativeActivity"));
             addClickListenerChrome();
         }else{
             Toast.makeText(this, "No se encuentra la aplicación Browser ", Toast.LENGTH_SHORT).show();
@@ -122,7 +149,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             admCensalIcon = (ImageView) findViewById(R.id.admCensal);
             admCensalIcon.setImageDrawable(getActivityIcon(this, "com.embarcadero.AdmCensal", "com.embarcadero.firemonkey.FMXNativeActivity"));
             admCensalName = (TextView) findViewById(R.id.admCensaltxt);
-            admCensalName.setText(getAppName("com.embarcadero.AdmCensal"));
+            //admCensalName.setText(getAppName("com.embarcadero.AdmCensal"));
+            admCensalName.setText("Administrador Censal");
             addClickListenerAdmCensal();
         } else {
             Toast.makeText(this, "No se encuentrá la aplicación AdmCensal", Toast.LENGTH_SHORT).show();
@@ -131,19 +159,19 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             mccIcon = (ImageView) findViewById(R.id.mcc);
             mccIcon.setImageDrawable(getActivityIcon(this, "com.embarcadero.mcc","com.embarcadero.firemonkey.FMXNativeActivity"));
             mccName = (TextView) findViewById(R.id.mccName);
-            mccName.setText(getAppName("com.embarcadero.mcc"));
+            //mccName.setText(getAppName("com.embarcadero.mcc"));
+            mccName.setText("MCC");
             addClickListenerMCC();
         } else {
             Toast.makeText(this, "No se encuentra la aplicación MCC",Toast.LENGTH_SHORT).show();
         }
-        if (isPackageInstalled("com.example.diegocasas.myapplication",pm)){
+        if (isPackageInstalled("com.example.diegocasas.descarto",pm)){
                 transIcon = (ImageView) findViewById(R.id.transfer);
-                transIcon.setImageDrawable(getActivityIcon(this, "com.example.diegocasas.myapplication","com.example.diegocasas.myapplication.MainActivity"));
+                transIcon.setImageDrawable(getResources().getDrawable(R.drawable.ic_open_with_black_48dp));
                 transName = (TextView) findViewById(R.id.transferName);
-                transName.setText(getAppName("com.example.diegocasas.myapplication"));
+                transName.setText("Instalación de Cartografía");
                 addClickListenerTrans();
         } else {
-
         }
     }
     public void showBarElements(){
@@ -236,13 +264,12 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             }
         });
     }
-
     /******ClickListener de los botones*******/
     public void addClickListenerChrome(){
         chromeIcon.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent launchIntent = getPackageManager().getLaunchIntentForPackage("com.android.chrome");
+                Intent launchIntent = getPackageManager().getLaunchIntentForPackage("com.embarcadero.OperaWeb");
                 startActivity(launchIntent);
             }
         });
@@ -257,11 +284,21 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         });
     }
     public void addClickListenerExplorer(){
+        final PackageManager pm = this.getPackageManager();
         explorerIcon.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent launchIntent = getPackageManager().getLaunchIntentForPackage("com.android.filemanager");
-                startActivity(launchIntent);
+                if (isPackageInstalled("com.android.filemanager", pm)){
+                    Intent launchIntent = getPackageManager().getLaunchIntentForPackage("com.android.filemanager");
+                     startActivity(launchIntent);
+                } else if (isPackageInstalled("com.android.settings", pm)){
+                    Intent intent = new Intent(Intent.ACTION_MAIN);
+                    intent.setClassName("com.android.settings", "com.android.settings.Settings$StorageSettingsActivity");
+                    startActivity(intent);
+                    finish();
+                } else {
+                    Toast.makeText(MainActivity.this, "Error", Toast.LENGTH_SHORT).show();
+                }
             }
         });
     }
@@ -287,8 +324,12 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         transIcon.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent launchIntent = getPackageManager().getLaunchIntentForPackage("com.example.diegocasas.myapplication");
-                startActivity(launchIntent);
+                if (isAdmin) {
+                    Intent launchIntent = getPackageManager().getLaunchIntentForPackage("com.example.diegocasas.descarto");
+                    startActivity(launchIntent);
+                } else {
+                    Toast.makeText(MainActivity.this, "No cuenta con los permisos", Toast.LENGTH_SHORT).show();
+                }
             }
         });
     }
@@ -379,7 +420,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         String pass = String.valueOf(taskEditText.getText());
-                        if (pass.equals("1234")){
+                        if (pass.equals("INEGIKIOSCO2018")){
                             isAdmin = true;
                             lock.setVisibility(View.INVISIBLE);
                             unlock.setVisibility(View.VISIBLE);
