@@ -1,8 +1,8 @@
 package com.example.diegocasas.customlauncher;
 
-import android.content.Context;
-import android.view.MotionEvent;
-import android.view.ViewGroup;
+        import android.content.Context;
+        import android.view.MotionEvent;
+        import android.view.ViewGroup;
 
 public class CustomViewGroup extends ViewGroup {
     public CustomViewGroup(Context context) {

@@ -18,6 +18,7 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.graphics.drawable.Drawable;
 import android.location.Address;
@@ -48,6 +49,10 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.fxn.cue.Cue;
+import com.fxn.cue.enums.Duration;
+import com.fxn.cue.enums.Type;
+
 import java.text.Format;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -72,9 +77,17 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     private static final String TAG = "MainActivity";
     ImageView chromeIcon, explorerIcon, capaIcon, admCensalIcon, settingsAll, settingsWifi, settingsBluetooth, settings3G, settingsLocation,call, sms, lock, unlock, camera, mccIcon, transIcon;
     TextView chromeName, explorerName, capaName, admCensalName, locationText, mccName, transName;
-    boolean isAdmin = false;
+    View view_bar;
+    boolean isAdmin = false, logueadoEnt = false, logueadoSup = false;
     LocationManager locationManager;
     int brightness = 204;
+
+    /******Base de datos*****/
+    Button btnLogin, btnLogout;
+    EditText edtUsername;
+    EditText edtPassword;
+    DatabaseHelper databaseHelper;
+
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     @SuppressLint("ResourceType")
@@ -83,13 +96,56 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        showElementsLayout();
-        showBarElements();
+
+        /********Base de datos**********/
+        view_bar = (View) findViewById(R.id.viewBar);
+        btnLogin = (Button) findViewById(R.id.btn_login);
+        edtUsername = (EditText) findViewById(R.id.et_username);
+        edtPassword = (EditText) findViewById(R.id.et_password);
+        btnLogout = (Button) findViewById(R.id.logout);
+
+        databaseHelper = new DatabaseHelper(MainActivity.this);
+
+        btnLogin.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                boolean isSup = databaseHelper.checkUserSup(edtUsername.getText().toString(), edtPassword.getText().toString());
+                boolean isEnt = databaseHelper.checkUserEnt(edtUsername.getText().toString(), edtPassword.getText().toString());
+                //boolean isExist = databaseHelper.checkUserExist(edtUsername.getText().toString(), edtPassword.getText().toString());
+
+                if(isSup){
+                    cueCorrect("Bienvenido supervisor: " + edtUsername.getText().toString());
+                    view_bar.setVisibility(View.VISIBLE);
+                    hideLogin();
+                    showElementsLayout();
+                    showBarElements();
+                    if (!isAdmin){
+                        unlock.setVisibility(View.INVISIBLE);
+                        logueadoSup = false;
+                        logueadoEnt = true;
+                    }
+                } else if (isEnt){
+                    cueCorrect("Bienvenido entrevistador: " + edtUsername.getText().toString());
+                    view_bar.setVisibility(View.VISIBLE);
+                    hideLogin();
+                    showElementsLayoutEnt();
+                    showBarElements();
+                    if (!isAdmin){
+                        unlock.setVisibility(View.INVISIBLE);
+                        logueadoEnt = false;
+                        logueadoSup = true;
+                    }
+                } else {
+                    edtPassword.setText(null);
+                    cueError("Usuario o contraseña invalido");
+                }
+            }
+        });
+        //showElementsLayout();
+        //showBarElements();
         preventStatusBarExpansion(this);
 
-        if (!isAdmin){
-            unlock.setVisibility(View.INVISIBLE);
-        }
+
         boolean settingsCanWrite = Settings.System.canWrite(MainActivity.this);
         if (!settingsCanWrite){
             Log.d("Brightness", "No se tiene permisos de escritura de opciones");
@@ -102,14 +158,79 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         }
     }
 
-    @Override
+   /* @Override
     protected void onResume() {
         super.onResume();
-        showElementsLayout();
-    }
+        if (logueadoSup == true){
+            showElementsLayout();
+            showBarElements();
+        } else if (logueadoEnt == true){
+            showElementsLayoutEnt();
+            showBarElements();
+        }
+    }*/
+    /******Elements layout entrevistador*********/
+    public void showElementsLayoutEnt(){
 
-    /******Elements layout*********/
+        btnLogout.setVisibility(View.VISIBLE);
+        btnLogout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+                startActivity(getIntent());
+            }
+        });
+
+        PackageManager pm = this.getPackageManager();
+        if (isPackageInstalled("com.android.filemanager", pm)) {
+            explorerIcon = (ImageView) findViewById(R.id.chromeButton);
+            explorerIcon.setImageDrawable(getActivityIcon(this, "com.android.filemanager", "com.android.filemanager.MainActivity"));
+            explorerIcon.setX(100);
+            explorerIcon.setY(100);
+            explorerName = (TextView) findViewById(R.id.chromeName);
+            explorerName.setText(getAppName("com.android.filemanager"));
+            addClickListenerExplorer();
+        } else if (isPackageInstalled("com.android.settings", pm)){
+            explorerIcon = (ImageView) findViewById(R.id.chromeButton);
+            explorerIcon.setImageDrawable(getActivityIcon(this, "com.android.settings", "com.android.settings.Settings$StorageSettingsActivity"));
+            explorerName = (TextView) findViewById(R.id.chromeName);
+            explorerName.setText("Gestor de archivos");
+            addClickListenerExplorer();
+        } else {
+            cueWarning("Ningún gestor de archivos instalado");
+        }
+        if (isPackageInstalled("io.cordova.CAPACITACION", pm)){
+            capaIcon = (ImageView) findViewById(R.id.mcc);
+            capaIcon.setImageDrawable(getActivityIcon(this, "io.cordova.CAPACITACION", "io.cordova.CAPACITACION.MainActivity"));
+            capaName = (TextView) findViewById(R.id.mccName);
+            capaName.setText(getAppName("io.cordova.CAPACITACION"));
+            addClickListenerCapa();
+        } else {
+            cueWarning("No se encuentra la aplicación CAAP");
+        }
+        if (isPackageInstalled("com.embarcadero.AdmCensal", pm)){
+            admCensalIcon = (ImageView) findViewById(R.id.admCensal);
+            admCensalIcon.setImageDrawable(getActivityIcon(this, "com.embarcadero.AdmCensal", "com.embarcadero.firemonkey.FMXNativeActivity"));
+            admCensalName = (TextView) findViewById(R.id.admCensaltxt);
+            //admCensalName.setText(getAppName("com.embarcadero.AdmCensal"));
+            admCensalName.setText("Administrador Censal");
+            addClickListenerAdmCensal();
+        } else {
+            cueWarning("No se encuentra la aplicación AdmCensal");
+        }
+    }
+    /******Elements layout supervisor*********/
     public void showElementsLayout(){
+
+        btnLogout.setVisibility(View.VISIBLE);
+        btnLogout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+                startActivity(getIntent());
+            }
+        });
+
         PackageManager pm = this.getPackageManager();
         if (isPackageInstalled("com.android.filemanager", pm)) {
             explorerIcon = (ImageView) findViewById(R.id.explorer);
@@ -124,7 +245,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             explorerName.setText("Gestor de archivos");
             addClickListenerExplorer();
         } else {
-            Toast.makeText(this, "Ningún gestor de archivos instalado", Toast.LENGTH_SHORT).show();
+            cueWarning("Ningún gestor de archivos instalado");
         }
         if (isPackageInstalled("com.embarcadero.OperaWeb", pm)) {
             chromeName = (TextView) findViewById(R.id.chromeName);
@@ -134,7 +255,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             chromeIcon.setImageDrawable(getActivityIcon(this, "com.embarcadero.OperaWeb", "com.embarcadero.firemonkey.FMXNativeActivity"));
             addClickListenerChrome();
         }else{
-            Toast.makeText(this, "No se encuentra la aplicación Browser ", Toast.LENGTH_SHORT).show();
+            cueWarning("No se encuentra la aplicación OperaWeb");
         }
         if (isPackageInstalled("io.cordova.CAPACITACION", pm)){
             capaIcon = (ImageView) findViewById(R.id.capaButton);
@@ -143,7 +264,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             capaName.setText(getAppName("io.cordova.CAPACITACION"));
             addClickListenerCapa();
         } else {
-            Toast.makeText(this, "No se encuentra la aplicación CAAP ", Toast.LENGTH_SHORT).show();
+            cueWarning("No se encuentra la aplicación CAAP");
         }
         if (isPackageInstalled("com.embarcadero.AdmCensal", pm)){
             admCensalIcon = (ImageView) findViewById(R.id.admCensal);
@@ -153,7 +274,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             admCensalName.setText("Administrador Censal");
             addClickListenerAdmCensal();
         } else {
-            Toast.makeText(this, "No se encuentrá la aplicación AdmCensal", Toast.LENGTH_SHORT).show();
+            cueWarning("No se encuentra la aplicación AdmCensal");
         }
         if (isPackageInstalled("com.embarcadero.mcc", pm)){
             mccIcon = (ImageView) findViewById(R.id.mcc);
@@ -163,7 +284,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             mccName.setText("MCC");
             addClickListenerMCC();
         } else {
-            Toast.makeText(this, "No se encuentra la aplicación MCC",Toast.LENGTH_SHORT).show();
+            cueWarning("No se encuentra la aplicación MCC");
         }
         if (isPackageInstalled("com.example.diegocasas.descarto",pm)){
                 transIcon = (ImageView) findViewById(R.id.transfer);
@@ -184,7 +305,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                     Intent launchIntent = getPackageManager().getLaunchIntentForPackage("com.android.settings");
                     startActivity(launchIntent);
                 } else {
-                    Toast.makeText(MainActivity.this, "No cuenta con los permisos", Toast.LENGTH_SHORT).show();
+                    cueError("No cuenta con los permisos");
                 }
             }
         });
@@ -227,7 +348,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         call.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(MainActivity.this, "Función deshabilitada", Toast.LENGTH_SHORT).show();
+                cueWarning("Función deshabilitada");
             }
         });
         sms = (ImageView) findViewById(R.id.sms);
@@ -235,7 +356,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         sms.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(MainActivity.this, "Función deshabilitada", Toast.LENGTH_SHORT).show();
+                cueWarning("Función deshabilitada");
             }
         });
         camera = (ImageView) findViewById(R.id.cameraSettings);
@@ -297,7 +418,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                     startActivity(intent);
                     finish();
                 } else {
-                    Toast.makeText(MainActivity.this, "Error", Toast.LENGTH_SHORT).show();
+                    cueError("Error");
                 }
             }
         });
@@ -328,7 +449,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                     Intent launchIntent = getPackageManager().getLaunchIntentForPackage("com.example.diegocasas.descarto");
                     startActivity(launchIntent);
                 } else {
-                    Toast.makeText(MainActivity.this, "No cuenta con los permisos", Toast.LENGTH_SHORT).show();
+                   cueError("No cuenta con los permisos");
                 }
             }
         });
@@ -337,7 +458,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         isAdmin = false;
         lock.setVisibility(View.VISIBLE);
         unlock.setVisibility(View.INVISIBLE);
-        Toast.makeText(this, "Sin permisos de admin", Toast.LENGTH_SHORT).show();
+        cueError("Sin permisos de administrador");
     }
     /*****Obtener icono de la app******/
     public static Drawable getActivityIcon(Context context, String packageName, String activityName) {
@@ -362,17 +483,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     /*****Deshabilitar back******/
     @Override
     public void onBackPressed() {
-        Toast.makeText(this, "Opción Deshabilitada", Toast.LENGTH_SHORT).show();
-    }
-    /*****Deshabilitar control de apagado (presión larga)*****/
-   /** @Override
-    public void onWindowFocusChanged(boolean hasFocus) {
-        super.onWindowFocusChanged(hasFocus);
-        if(!hasFocus) {
-            // Close every kind of system dialog
-            Intent closeDialog = new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
-            sendBroadcast(closeDialog);
-        }
+        cueWarning("Opción deshabilitada");
     }
     /*****Deshabilitar controles de volumen******/
     @Override
@@ -424,9 +535,9 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                             isAdmin = true;
                             lock.setVisibility(View.INVISIBLE);
                             unlock.setVisibility(View.VISIBLE);
-                            Toast.makeText(MainActivity.this, "Contraseña correcta", Toast.LENGTH_SHORT).show();
+                           cueCorrect("Contraseña correcta");
                         } else {
-                            Toast.makeText(MainActivity.this, "Contraseña incorrecta", Toast.LENGTH_SHORT).show();
+                            cueError("Contraseña incorrecta");
                             isAdmin = false;
                         }
                     }
@@ -498,5 +609,59 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         } catch (PackageManager.NameNotFoundException e) {
             return false;
         }
+    }
+    public void cueError(String msg){
+        Cue.init()
+                .with(MainActivity.this)
+                .setMessage(msg)
+                .setGravity(Gravity.CENTER_HORIZONTAL | Gravity.CENTER_VERTICAL)
+                .setType(Type.CUSTOM)
+                .setDuration(Duration.SHORT)
+                .setBorderWidth(5)
+                .setCornerRadius(10)
+                .setCustomFontColor(Color.parseColor("#FA5858"),
+                        Color.parseColor("#ffffff"),
+                        Color.parseColor("#e84393"))
+                .setPadding(30)
+                .setTextSize(15)
+                .show();
+    }
+    public void cueCorrect(String msg){
+        Cue.init()
+                .with(MainActivity.this)
+                .setMessage(msg)
+                .setGravity(Gravity.CENTER_HORIZONTAL | Gravity.CENTER_VERTICAL)
+                .setType(Type.CUSTOM)
+                .setDuration(Duration.SHORT)
+                .setBorderWidth(5)
+                .setCornerRadius(10)
+                .setCustomFontColor(Color.parseColor("#088A85"), //fondo
+                        Color.parseColor("#ffffff"), //letra
+                        Color.parseColor("#01DFD7")) //contorno
+                .setPadding(30)
+                .setTextSize(15)
+                .show();
+    }
+    public void cueWarning(String msg){
+        Cue.init()
+                .with(MainActivity.this)
+                .setMessage(msg)
+                .setGravity(Gravity.CENTER_HORIZONTAL | Gravity.CENTER_VERTICAL)
+                .setType(Type.CUSTOM)
+                .setDuration(Duration.SHORT)
+                .setBorderWidth(5)
+                .setCornerRadius(10)
+                .setCustomFontColor(Color.parseColor("#DF7401"), //fondo
+                        Color.parseColor("#ffffff"), //letra
+                        Color.parseColor("#DBA901")) //contorno
+                .setPadding(30)
+                .setTextSize(15)
+                .show();
+    }
+    /**********************************Base de datos de Login**********************************/
+    public void hideLogin(){
+        btnLogin.setVisibility(View.INVISIBLE);
+        edtPassword.setVisibility(View.INVISIBLE);
+        edtUsername.setVisibility(View.INVISIBLE);
     }
 }
