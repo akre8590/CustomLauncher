@@ -6,7 +6,8 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity"
     android:orientation="horizontal"
-    android:background="@drawable/opera">
+    android:background="@drawable/opera"
+    android:focusableInTouchMode="true">
 
     <View
         android:id="@+id/viewBar"
@@ -125,9 +126,7 @@
         android:layout_marginLeft="20dp"
         android:layout_below="@id/transfer"/>
 
-
     <!--  Barra   -->
-
     <ImageView
         android:id="@+id/settingsWifi"
         android:layout_width="30dp"
@@ -215,18 +214,52 @@
         android:layout_marginTop="15dp"/>
 
 
-    <EditText
+    <!--         info logueado            -->
+   <TextView
+        android:textColor="#000000"
+        android:padding="5dp"
+        android:id="@+id/info_log"
+        android:layout_alignParentBottom="true"
+        android:layout_marginLeft="15dp"
+        android:layout_marginBottom="15dp"
+        android:textSize="22dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="invisible"/>
+    <View
+        android:id="@+id/viewBarBottom"
+        android:visibility="invisible"
+        android:layout_width="match_parent"
+        android:layout_height="3dp"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="70dp"
+        android:background="@android:color/darker_gray"/>
+
+    <ImageView
+        android:visibility="invisible"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true"
+        android:id="@+id/logout"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_marginBottom="10dp"
+        android:layout_marginRight="10dp"/>
+
+    <!--         Login            -->
+    <com.rengwuxian.materialedittext.MaterialEditText
+        app:met_primaryColor="@color/colorPrimaryDark"
+        app:met_maxCharacters="10"
         android:id="@+id/et_username"
         android:layout_width="300dp"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="110dp"
-        android:hint="Usuario"
+        android:hint="Clave Operativa"
         android:textAlignment="center"
-        android:textColor="#000000"
-        android:textSize="20dp" />
-
-    <EditText
+        android:textSize="35dp"
+        android:inputType="number" />
+    <com.rengwuxian.materialedittext.MaterialEditText
+        app:met_primaryColor="@color/colorPrimaryDark"
         android:id="@+id/et_password"
         android:layout_width="300dp"
         android:layout_height="wrap_content"
@@ -236,8 +269,7 @@
         android:hint="Contraseña"
         android:inputType="textPassword"
         android:textAlignment="center"
-        android:textColor="#000000"
-        android:textSize="20dp" />
+        android:textSize="25dp" />
 
     <Button
         android:textColor="#FFFFFF"
@@ -248,18 +280,6 @@
        android:layout_below="@id/et_password"
         android:layout_marginTop="30dp"
         android:background="#2E64FE"
-        android:text=" Login" />
-
-    <Button
-        android:visibility="invisible"
-        android:text="Salir"
-        android:layout_centerHorizontal="true"
-        android:layout_alignParentBottom="true"
-        android:id="@+id/logout"
-        android:layout_width="100dp"
-        android:layout_height="50dp"
-        android:background="@color/colorPrimary"
-        android:layout_marginBottom="20dp"/>
-
+        android:text=" ACCEDER" />
 
 </RelativeLayout>

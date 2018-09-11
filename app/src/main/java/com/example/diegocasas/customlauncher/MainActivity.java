@@ -20,7 +20,9 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
+import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
+import android.inputmethodservice.Keyboard;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
@@ -40,9 +42,11 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 
 import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -75,15 +79,15 @@ import services.TimeService;
 public class MainActivity extends AppCompatActivity implements LocationListener {
     public final List blockedKeys = new ArrayList(Arrays.asList(KeyEvent.KEYCODE_VOLUME_DOWN, KeyEvent.KEYCODE_VOLUME_UP));
     private static final String TAG = "MainActivity";
-    ImageView chromeIcon, explorerIcon, capaIcon, admCensalIcon, settingsAll, settingsWifi, settingsBluetooth, settings3G, settingsLocation,call, sms, lock, unlock, camera, mccIcon, transIcon;
-    TextView chromeName, explorerName, capaName, admCensalName, locationText, mccName, transName;
-    View view_bar;
+    ImageView chromeIcon, explorerIcon, capaIcon, admCensalIcon, settingsAll, settingsWifi, settingsBluetooth, settings3G, settingsLocation,call, sms, lock, unlock, camera, mccIcon, transIcon, btnLogout;
+    TextView chromeName, explorerName, capaName, admCensalName, locationText, mccName, transName, infoLog;
+    View view_bar, view_bar_bottom;
     boolean isAdmin = false, logueadoEnt = false, logueadoSup = false;
     LocationManager locationManager;
     int brightness = 204;
 
     /******Base de datos*****/
-    Button btnLogin, btnLogout;
+    Button btnLogin;
     EditText edtUsername;
     EditText edtPassword;
     DatabaseHelper databaseHelper;
@@ -96,13 +100,17 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        infoLog = (TextView) findViewById(R.id.info_log);
 
         /********Base de datos**********/
         view_bar = (View) findViewById(R.id.viewBar);
+        view_bar_bottom = (View)findViewById(R.id.viewBarBottom) ;
         btnLogin = (Button) findViewById(R.id.btn_login);
         edtUsername = (EditText) findViewById(R.id.et_username);
         edtPassword = (EditText) findViewById(R.id.et_password);
-        btnLogout = (Button) findViewById(R.id.logout);
+        btnLogout = (ImageView) findViewById(R.id.logout);
+        btnLogout.setImageDrawable(getResources().getDrawable(R.drawable.ic_power_settings_new_black_48dp));
+
 
         databaseHelper = new DatabaseHelper(MainActivity.this);
 
@@ -114,8 +122,10 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 //boolean isExist = databaseHelper.checkUserExist(edtUsername.getText().toString(), edtPassword.getText().toString());
 
                 if(isSup){
+                    databaseHelper.updateAccessSup(edtUsername.getText().toString(), edtPassword.getText().toString());
                     cueCorrect("Bienvenido supervisor: " + edtUsername.getText().toString());
-                    view_bar.setVisibility(View.VISIBLE);
+                    infoLog.setVisibility(View.VISIBLE);
+                    infoLog.setText("Bienvenido supervisor: " + edtUsername.getText().toString());
                     hideLogin();
                     showElementsLayout();
                     showBarElements();
@@ -123,10 +133,13 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                         unlock.setVisibility(View.INVISIBLE);
                         logueadoSup = false;
                         logueadoEnt = true;
+                        hideKeyboard(MainActivity.this);
                     }
                 } else if (isEnt){
+                    databaseHelper.updateAccessEnt(edtUsername.getText().toString(), edtPassword.getText().toString());
                     cueCorrect("Bienvenido entrevistador: " + edtUsername.getText().toString());
-                    view_bar.setVisibility(View.VISIBLE);
+                    infoLog.setVisibility(View.VISIBLE);
+                    infoLog.setText("Bienvenido entrevistador: " + edtUsername.getText().toString());
                     hideLogin();
                     showElementsLayoutEnt();
                     showBarElements();
@@ -134,6 +147,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                         unlock.setVisibility(View.INVISIBLE);
                         logueadoEnt = false;
                         logueadoSup = true;
+                        hideKeyboard(MainActivity.this);
                     }
                 } else {
                     edtPassword.setText(null);
@@ -141,10 +155,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 }
             }
         });
-        //showElementsLayout();
-        //showBarElements();
         preventStatusBarExpansion(this);
-
 
         boolean settingsCanWrite = Settings.System.canWrite(MainActivity.this);
         if (!settingsCanWrite){
@@ -157,7 +168,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             Settings.System.putInt(cResolver, Settings.System.SCREEN_BRIGHTNESS, brightness);
         }
     }
-
    /* @Override
     protected void onResume() {
         super.onResume();
@@ -169,41 +179,52 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             showBarElements();
         }
     }*/
+   public static void hideKeyboard(Activity activity) {
+       InputMethodManager imm = (InputMethodManager) activity.getSystemService(Activity.INPUT_METHOD_SERVICE);
+       //Find the currently focused view, so we can grab the correct window token from it.
+       View view = activity.getCurrentFocus();
+       //If no view currently has focus, create a new one, just so we can grab a window token from it
+       if (view == null) {
+           view = new View(activity);
+       }
+       imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+   }
     /******Elements layout entrevistador*********/
     public void showElementsLayoutEnt(){
 
         btnLogout.setVisibility(View.VISIBLE);
+
         btnLogout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                finish();
-                startActivity(getIntent());
+                showAlertDialogButtonClicked();
             }
         });
 
         PackageManager pm = this.getPackageManager();
         if (isPackageInstalled("com.android.filemanager", pm)) {
+
             explorerIcon = (ImageView) findViewById(R.id.chromeButton);
             explorerIcon.setImageDrawable(getActivityIcon(this, "com.android.filemanager", "com.android.filemanager.MainActivity"));
             explorerIcon.setX(100);
             explorerIcon.setY(100);
             explorerName = (TextView) findViewById(R.id.chromeName);
             explorerName.setText(getAppName("com.android.filemanager"));
-            addClickListenerExplorer();
+            addClickListenerExplorerEnt();
         } else if (isPackageInstalled("com.android.settings", pm)){
             explorerIcon = (ImageView) findViewById(R.id.chromeButton);
             explorerIcon.setImageDrawable(getActivityIcon(this, "com.android.settings", "com.android.settings.Settings$StorageSettingsActivity"));
             explorerName = (TextView) findViewById(R.id.chromeName);
             explorerName.setText("Gestor de archivos");
-            addClickListenerExplorer();
+          addClickListenerExplorerEnt();
         } else {
             cueWarning("Ningún gestor de archivos instalado");
         }
-        if (isPackageInstalled("io.cordova.CAPACITACION", pm)){
+        if (isPackageInstalled("io.cordova.CAPACITACIONECB", pm)){
             capaIcon = (ImageView) findViewById(R.id.mcc);
-            capaIcon.setImageDrawable(getActivityIcon(this, "io.cordova.CAPACITACION", "io.cordova.CAPACITACION.MainActivity"));
+            capaIcon.setImageDrawable(getActivityIcon(this, "io.cordova.CAPACITACIONECB", "io.cordova.CAPACITACIONECB.MainActivity"));
             capaName = (TextView) findViewById(R.id.mccName);
-            capaName.setText(getAppName("io.cordova.CAPACITACION"));
+            capaName.setText(getAppName("io.cordova.CAPACITACIONECB"));
             addClickListenerCapa();
         } else {
             cueWarning("No se encuentra la aplicación CAAP");
@@ -226,8 +247,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         btnLogout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                finish();
-                startActivity(getIntent());
+                showAlertDialogButtonClicked();
             }
         });
 
@@ -257,11 +277,11 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         }else{
             cueWarning("No se encuentra la aplicación OperaWeb");
         }
-        if (isPackageInstalled("io.cordova.CAPACITACION", pm)){
+        if (isPackageInstalled("io.cordova.CAPACITACIONECB", pm)){
             capaIcon = (ImageView) findViewById(R.id.capaButton);
-            capaIcon.setImageDrawable(getActivityIcon(this, "io.cordova.CAPACITACION", "io.cordova.CAPACITACION.MainActivity"));
+            capaIcon.setImageDrawable(getActivityIcon(this, "io.cordova.CAPACITACIONECB", "io.cordova.CAPACITACIONECB.MainActivity"));
             capaName = (TextView) findViewById(R.id.capaName);
-            capaName.setText(getAppName("io.cordova.CAPACITACION"));
+            capaName.setText(getAppName("io.cordova.CAPACITACIONECB"));
             addClickListenerCapa();
         } else {
             cueWarning("No se encuentra la aplicación CAAP");
@@ -270,7 +290,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             admCensalIcon = (ImageView) findViewById(R.id.admCensal);
             admCensalIcon.setImageDrawable(getActivityIcon(this, "com.embarcadero.AdmCensal", "com.embarcadero.firemonkey.FMXNativeActivity"));
             admCensalName = (TextView) findViewById(R.id.admCensaltxt);
-            //admCensalName.setText(getAppName("com.embarcadero.AdmCensal"));
             admCensalName.setText("Administrador Censal");
             addClickListenerAdmCensal();
         } else {
@@ -295,7 +314,11 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         } else {
         }
     }
+    /*********Elementos de la barra de opciones***********/
     public void showBarElements(){
+        view_bar_bottom.setVisibility(View.VISIBLE);
+        view_bar.setVisibility(View.VISIBLE);
+
         settingsAll = (ImageView) findViewById(R.id.settingsAll);
         settingsAll.setImageDrawable(getResources().getDrawable(R.drawable.settings));
         settingsAll.setOnClickListener(new View.OnClickListener() {
@@ -404,6 +427,28 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             }
         });
     }
+    public void addClickListenerExplorerEnt(){
+        final PackageManager pm = this.getPackageManager();
+        explorerIcon.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (isAdmin) {
+                    if (isPackageInstalled("com.android.filemanager", pm)){
+                        Intent launchIntent = getPackageManager().getLaunchIntentForPackage("com.android.filemanager");
+                        startActivity(launchIntent);
+                    } else if (isPackageInstalled("com.android.settings", pm)){
+                        Intent intent = new Intent();
+                        intent.setComponent(new ComponentName("com.android.settings","com.android.settings.Settings$StorageSettingsActivity"));
+                        startActivity(intent);
+                    } else {
+                        cueError("Error");
+                    }
+                } else {
+                    cueError("No cuenta con los permisos");
+                }
+            }
+        });
+    }
     public void addClickListenerExplorer(){
         final PackageManager pm = this.getPackageManager();
         explorerIcon.setOnClickListener(new View.OnClickListener() {
@@ -413,10 +458,9 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                     Intent launchIntent = getPackageManager().getLaunchIntentForPackage("com.android.filemanager");
                      startActivity(launchIntent);
                 } else if (isPackageInstalled("com.android.settings", pm)){
-                    Intent intent = new Intent(Intent.ACTION_MAIN);
-                    intent.setClassName("com.android.settings", "com.android.settings.Settings$StorageSettingsActivity");
+                    Intent intent = new Intent();
+                    intent.setComponent(new ComponentName("com.android.settings","com.android.settings.Settings$StorageSettingsActivity"));
                     startActivity(intent);
-                    finish();
                 } else {
                     cueError("Error");
                 }
@@ -427,7 +471,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             capaIcon.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Intent launchIntent = getPackageManager().getLaunchIntentForPackage("io.cordova.CAPACITACION");
+                    Intent launchIntent = getPackageManager().getLaunchIntentForPackage("io.cordova.CAPACITACIONECB");
                     startActivity(launchIntent);
                 }
             });
@@ -581,7 +625,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     public void onLocationChanged(Location location) {
-
                 startJob(location.getLatitude(),location.getLongitude());
                 locationText.setText("Latitude: " + location.getLatitude() + "\n Longitude: " + location.getLongitude());
         try {
@@ -663,5 +706,25 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         btnLogin.setVisibility(View.INVISIBLE);
         edtPassword.setVisibility(View.INVISIBLE);
         edtUsername.setVisibility(View.INVISIBLE);
+    }
+    public void showAlertDialogButtonClicked() {
+        // setup the alert builder
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Finalizar sesión");
+        builder.setMessage("¿Está seguro?");
+        // add the buttons
+        builder.setPositiveButton("Continuar", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                databaseHelper.clearColumn();
+                cueError("Finalizó la sesión");
+                finish();
+                startActivity(getIntent());
+            }
+        });
+        builder.setNegativeButton("Cancelar", null);
+        // create and show the alert dialog
+        AlertDialog dialog = builder.create();
+        dialog.show();
     }
 }

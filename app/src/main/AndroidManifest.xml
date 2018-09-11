@@ -51,9 +51,6 @@
             android:permission="android.permission.BIND_JOB_SERVICE" />
         <service android:name="services.LocationService" />
 
-        <activity android:name=".Login">
-
-        </activity>
     </application>
 
 </manifest>

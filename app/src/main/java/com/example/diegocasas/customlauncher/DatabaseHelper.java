@@ -1,9 +1,11 @@
 package com.example.diegocasas.customlauncher;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.widget.Toast;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -21,7 +23,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String DATABASE_PATH = "/storage/emulated/0/mcc/db/";
     private final String USER_TABLE = "TR_SEGURIDAD";
     //private final String USER_TABLE = "user";
-
 
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -52,6 +53,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             String path = DATABASE_PATH + DATABASE_NAME;
             sqLiteDatabase = SQLiteDatabase.openDatabase(path, null, SQLiteDatabase.OPEN_READONLY);
         } catch (Exception ex){
+            Toast.makeText(context, ex.getMessage(), Toast.LENGTH_SHORT).show();
         }
 
         if(sqLiteDatabase != null){
@@ -81,12 +83,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             outputStream.close();
             inputStream.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            Toast.makeText(context, e.getMessage(), Toast.LENGTH_SHORT).show();
         }
 
     }
 
     private SQLiteDatabase openDatabase(){
+
         String path = DATABASE_PATH + DATABASE_NAME;
         db = SQLiteDatabase.openDatabase(path, null, SQLiteDatabase.OPEN_READWRITE);
         return db;
@@ -110,6 +113,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         String[] selectionArgs = {CVEOPER, CONTRA, "SUPERVISOR"};
 
         Cursor cursor = db.query(USER_TABLE, columns, selection, selectionArgs, null, null, null);
+
         int count = cursor.getCount();
 
         cursor.close();
@@ -121,6 +125,18 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             return false;
         }
     }
+    public void updateAccessSup(String CVEOPER, String  CONTRA){
+        clearColumn();
+        db = openDatabase();
+
+        String selection = "CVEOPER = ? and CONTRA = ? and TIPO = ?";
+        String[] selectionArgs = {CVEOPER, CONTRA, "SUPERVISOR"};
+
+        ContentValues values = new ContentValues();
+        values.put("UACCESO","1");
+        db.update("TR_SEGURIDAD",values,selection, selectionArgs);
+    }
+
     public boolean checkUserEnt(String CVEOPER, String  CONTRA){
         String[] columns = {"CVEOPER"};
         //String[] columns = {"username"};
@@ -143,5 +159,23 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         } else {
             return false;
         }
+    }
+    public void updateAccessEnt(String CVEOPER, String CONTRA){
+        clearColumn();
+        db = openDatabase();
+
+        String selection = "CVEOPER = ? and CONTRA = ? and TIPO = ?";
+        String[] selectionArgs = {CVEOPER, CONTRA, "ENTREVISTADOR"};
+
+        ContentValues values = new ContentValues();
+        values.put("UACCESO","1");
+        db.update("TR_SEGURIDAD",values,selection, selectionArgs);
+    }
+
+    public void clearColumn(){
+        db = openDatabase();
+        ContentValues values = new ContentValues();
+        values.put("UACCESO", (String) null);
+        db.update("TR_SEGURIDAD", values, null, null);
     }
 }
