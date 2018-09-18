@@ -37,11 +37,8 @@
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
-
                 <category android:name="android.intent.category.HOME" />
                 <category android:name="android.intent.category.DEFAULT" />
-
-
             </intent-filter>
         </activity>
 
@@ -51,6 +48,8 @@
             android:permission="android.permission.BIND_JOB_SERVICE" />
         <service android:name="services.LocationService" />
 
+        <activity android:name=".Second"
+            android:screenOrientation="portrait">
+        </activity>
     </application>
-
 </manifest>

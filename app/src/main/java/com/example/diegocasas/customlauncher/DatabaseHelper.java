@@ -60,7 +60,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             sqLiteDatabase.close();
             return true;
         }
-
         return false;
     }
 

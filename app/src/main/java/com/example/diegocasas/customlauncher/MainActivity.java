@@ -79,10 +79,7 @@ import services.TimeService;
 public class MainActivity extends AppCompatActivity implements LocationListener {
     public final List blockedKeys = new ArrayList(Arrays.asList(KeyEvent.KEYCODE_VOLUME_DOWN, KeyEvent.KEYCODE_VOLUME_UP));
     private static final String TAG = "MainActivity";
-    ImageView chromeIcon, explorerIcon, capaIcon, admCensalIcon, settingsAll, settingsWifi, settingsBluetooth, settings3G, settingsLocation,call, sms, lock, unlock, camera, mccIcon, transIcon, btnLogout;
-    TextView chromeName, explorerName, capaName, admCensalName, locationText, mccName, transName, infoLog;
-    View view_bar, view_bar_bottom;
-    boolean isAdmin = false, logueadoEnt = false, logueadoSup = false;
+    String c_oper;
     LocationManager locationManager;
     int brightness = 204;
 
@@ -91,7 +88,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     EditText edtUsername;
     EditText edtPassword;
     DatabaseHelper databaseHelper;
-
+    CueMsg cueMsg = new CueMsg(MainActivity.this);
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     @SuppressLint("ResourceType")
@@ -100,17 +97,10 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        infoLog = (TextView) findViewById(R.id.info_log);
-
         /********Base de datos**********/
-        view_bar = (View) findViewById(R.id.viewBar);
-        view_bar_bottom = (View)findViewById(R.id.viewBarBottom) ;
         btnLogin = (Button) findViewById(R.id.btn_login);
         edtUsername = (EditText) findViewById(R.id.et_username);
         edtPassword = (EditText) findViewById(R.id.et_password);
-        btnLogout = (ImageView) findViewById(R.id.logout);
-        btnLogout.setImageDrawable(getResources().getDrawable(R.drawable.ic_power_settings_new_black_48dp));
-
 
         databaseHelper = new DatabaseHelper(MainActivity.this);
 
@@ -119,39 +109,24 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             public void onClick(View v) {
                 boolean isSup = databaseHelper.checkUserSup(edtUsername.getText().toString(), edtPassword.getText().toString());
                 boolean isEnt = databaseHelper.checkUserEnt(edtUsername.getText().toString(), edtPassword.getText().toString());
-                //boolean isExist = databaseHelper.checkUserExist(edtUsername.getText().toString(), edtPassword.getText().toString());
-
+                c_oper = edtUsername.getText().toString();
                 if(isSup){
                     databaseHelper.updateAccessSup(edtUsername.getText().toString(), edtPassword.getText().toString());
-                    cueCorrect("Bienvenido supervisor: " + edtUsername.getText().toString());
-                    infoLog.setVisibility(View.VISIBLE);
-                    infoLog.setText("Bienvenido supervisor: " + edtUsername.getText().toString());
-                    hideLogin();
-                    showElementsLayout();
-                    showBarElements();
-                    if (!isAdmin){
-                        unlock.setVisibility(View.INVISIBLE);
-                        logueadoSup = false;
-                        logueadoEnt = true;
-                        hideKeyboard(MainActivity.this);
-                    }
+                    cueMsg.cueCorrect("Bienvenido Supervisor: " + edtUsername.getText().toString());
+                    Intent i = new Intent(MainActivity.this, Second.class);
+                    i.putExtra("profile", true);
+                    i.putExtra("ClaveOperativa", c_oper);
+                    startActivity(i);
                 } else if (isEnt){
                     databaseHelper.updateAccessEnt(edtUsername.getText().toString(), edtPassword.getText().toString());
-                    cueCorrect("Bienvenido entrevistador: " + edtUsername.getText().toString());
-                    infoLog.setVisibility(View.VISIBLE);
-                    infoLog.setText("Bienvenido entrevistador: " + edtUsername.getText().toString());
-                    hideLogin();
-                    showElementsLayoutEnt();
-                    showBarElements();
-                    if (!isAdmin){
-                        unlock.setVisibility(View.INVISIBLE);
-                        logueadoEnt = false;
-                        logueadoSup = true;
-                        hideKeyboard(MainActivity.this);
-                    }
+                    cueMsg.cueCorrect("Bienvenido Entrevistador: " + edtUsername.getText().toString());
+                    Intent i = new Intent(MainActivity.this, Second.class);
+                    i.putExtra("profile", false);
+                    i.putExtra("ClaveOperativa", c_oper);
+                    startActivity(i);
                 } else {
                     edtPassword.setText(null);
-                    cueError("Usuario o contraseña invalido");
+                    cueMsg.cueError("Usuario o contraseña invalido");
                 }
             }
         });
@@ -168,366 +143,10 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             Settings.System.putInt(cResolver, Settings.System.SCREEN_BRIGHTNESS, brightness);
         }
     }
-   /* @Override
-    protected void onResume() {
-        super.onResume();
-        if (logueadoSup == true){
-            showElementsLayout();
-            showBarElements();
-        } else if (logueadoEnt == true){
-            showElementsLayoutEnt();
-            showBarElements();
-        }
-    }*/
-   public static void hideKeyboard(Activity activity) {
-       InputMethodManager imm = (InputMethodManager) activity.getSystemService(Activity.INPUT_METHOD_SERVICE);
-       //Find the currently focused view, so we can grab the correct window token from it.
-       View view = activity.getCurrentFocus();
-       //If no view currently has focus, create a new one, just so we can grab a window token from it
-       if (view == null) {
-           view = new View(activity);
-       }
-       imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
-   }
-    /******Elements layout entrevistador*********/
-    public void showElementsLayoutEnt(){
-
-        btnLogout.setVisibility(View.VISIBLE);
-
-        btnLogout.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showAlertDialogButtonClicked();
-            }
-        });
-
-        PackageManager pm = this.getPackageManager();
-        if (isPackageInstalled("com.android.filemanager", pm)) {
-
-            explorerIcon = (ImageView) findViewById(R.id.chromeButton);
-            explorerIcon.setImageDrawable(getActivityIcon(this, "com.android.filemanager", "com.android.filemanager.MainActivity"));
-            explorerIcon.setX(100);
-            explorerIcon.setY(100);
-            explorerName = (TextView) findViewById(R.id.chromeName);
-            explorerName.setText(getAppName("com.android.filemanager"));
-            addClickListenerExplorerEnt();
-        } else if (isPackageInstalled("com.android.settings", pm)){
-            explorerIcon = (ImageView) findViewById(R.id.chromeButton);
-            explorerIcon.setImageDrawable(getActivityIcon(this, "com.android.settings", "com.android.settings.Settings$StorageSettingsActivity"));
-            explorerName = (TextView) findViewById(R.id.chromeName);
-            explorerName.setText("Gestor de archivos");
-          addClickListenerExplorerEnt();
-        } else {
-            cueWarning("Ningún gestor de archivos instalado");
-        }
-        if (isPackageInstalled("io.cordova.CAPACITACIONECB", pm)){
-            capaIcon = (ImageView) findViewById(R.id.mcc);
-            capaIcon.setImageDrawable(getActivityIcon(this, "io.cordova.CAPACITACIONECB", "io.cordova.CAPACITACIONECB.MainActivity"));
-            capaName = (TextView) findViewById(R.id.mccName);
-            capaName.setText(getAppName("io.cordova.CAPACITACIONECB"));
-            addClickListenerCapa();
-        } else {
-            cueWarning("No se encuentra la aplicación CAAP");
-        }
-        if (isPackageInstalled("com.embarcadero.AdmCensal", pm)){
-            admCensalIcon = (ImageView) findViewById(R.id.admCensal);
-            admCensalIcon.setImageDrawable(getActivityIcon(this, "com.embarcadero.AdmCensal", "com.embarcadero.firemonkey.FMXNativeActivity"));
-            admCensalName = (TextView) findViewById(R.id.admCensaltxt);
-            //admCensalName.setText(getAppName("com.embarcadero.AdmCensal"));
-            admCensalName.setText("Administrador Censal");
-            addClickListenerAdmCensal();
-        } else {
-            cueWarning("No se encuentra la aplicación AdmCensal");
-        }
-    }
-    /******Elements layout supervisor*********/
-    public void showElementsLayout(){
-
-        btnLogout.setVisibility(View.VISIBLE);
-        btnLogout.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showAlertDialogButtonClicked();
-            }
-        });
-
-        PackageManager pm = this.getPackageManager();
-        if (isPackageInstalled("com.android.filemanager", pm)) {
-            explorerIcon = (ImageView) findViewById(R.id.explorer);
-            explorerIcon.setImageDrawable(getActivityIcon(this, "com.android.filemanager", "com.android.filemanager.MainActivity"));
-            explorerName = (TextView) findViewById(R.id.explorerName);
-            explorerName.setText(getAppName("com.android.filemanager"));
-            addClickListenerExplorer();
-        } else if (isPackageInstalled("com.android.settings", pm)){
-            explorerIcon = (ImageView) findViewById(R.id.explorer);
-            explorerIcon.setImageDrawable(getActivityIcon(this, "com.android.settings", "com.android.settings.Settings$StorageSettingsActivity"));
-            explorerName = (TextView) findViewById(R.id.explorerName);
-            explorerName.setText("Gestor de archivos");
-            addClickListenerExplorer();
-        } else {
-            cueWarning("Ningún gestor de archivos instalado");
-        }
-        if (isPackageInstalled("com.embarcadero.OperaWeb", pm)) {
-            chromeName = (TextView) findViewById(R.id.chromeName);
-            //chromeName.setText(getAppName("com.embarcadero.OperaWeb"));
-            chromeName.setText("OPERA Web");
-            chromeIcon = (ImageView) findViewById(R.id.chromeButton);
-            chromeIcon.setImageDrawable(getActivityIcon(this, "com.embarcadero.OperaWeb", "com.embarcadero.firemonkey.FMXNativeActivity"));
-            addClickListenerChrome();
-        }else{
-            cueWarning("No se encuentra la aplicación OperaWeb");
-        }
-        if (isPackageInstalled("io.cordova.CAPACITACIONECB", pm)){
-            capaIcon = (ImageView) findViewById(R.id.capaButton);
-            capaIcon.setImageDrawable(getActivityIcon(this, "io.cordova.CAPACITACIONECB", "io.cordova.CAPACITACIONECB.MainActivity"));
-            capaName = (TextView) findViewById(R.id.capaName);
-            capaName.setText(getAppName("io.cordova.CAPACITACIONECB"));
-            addClickListenerCapa();
-        } else {
-            cueWarning("No se encuentra la aplicación CAAP");
-        }
-        if (isPackageInstalled("com.embarcadero.AdmCensal", pm)){
-            admCensalIcon = (ImageView) findViewById(R.id.admCensal);
-            admCensalIcon.setImageDrawable(getActivityIcon(this, "com.embarcadero.AdmCensal", "com.embarcadero.firemonkey.FMXNativeActivity"));
-            admCensalName = (TextView) findViewById(R.id.admCensaltxt);
-            admCensalName.setText("Administrador Censal");
-            addClickListenerAdmCensal();
-        } else {
-            cueWarning("No se encuentra la aplicación AdmCensal");
-        }
-        if (isPackageInstalled("com.embarcadero.mcc", pm)){
-            mccIcon = (ImageView) findViewById(R.id.mcc);
-            mccIcon.setImageDrawable(getActivityIcon(this, "com.embarcadero.mcc","com.embarcadero.firemonkey.FMXNativeActivity"));
-            mccName = (TextView) findViewById(R.id.mccName);
-            //mccName.setText(getAppName("com.embarcadero.mcc"));
-            mccName.setText("MCC");
-            addClickListenerMCC();
-        } else {
-            cueWarning("No se encuentra la aplicación MCC");
-        }
-        if (isPackageInstalled("com.example.diegocasas.descarto",pm)){
-                transIcon = (ImageView) findViewById(R.id.transfer);
-                transIcon.setImageDrawable(getResources().getDrawable(R.drawable.ic_open_with_black_48dp));
-                transName = (TextView) findViewById(R.id.transferName);
-                transName.setText("Instalación de Cartografía");
-                addClickListenerTrans();
-        } else {
-        }
-    }
-    /*********Elementos de la barra de opciones***********/
-    public void showBarElements(){
-        view_bar_bottom.setVisibility(View.VISIBLE);
-        view_bar.setVisibility(View.VISIBLE);
-
-        settingsAll = (ImageView) findViewById(R.id.settingsAll);
-        settingsAll.setImageDrawable(getResources().getDrawable(R.drawable.settings));
-        settingsAll.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (isAdmin) {
-                    Intent launchIntent = getPackageManager().getLaunchIntentForPackage("com.android.settings");
-                    startActivity(launchIntent);
-                } else {
-                    cueError("No cuenta con los permisos");
-                }
-            }
-        });
-        settingsWifi = (ImageView) findViewById(R.id.settingsWifi);
-        settingsWifi.setImageDrawable(getResources().getDrawable(R.drawable.ic_signal_wifi_4_bar_black_48dp));
-        settingsWifi.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(Settings.ACTION_WIFI_SETTINGS));
-            }
-        });
-        settingsBluetooth = (ImageView) findViewById(R.id.settingsBluetooth);
-        settingsBluetooth.setImageDrawable(getResources().getDrawable(R.drawable.ic_bluetooth_black_48dp));
-        settingsBluetooth.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(Settings.ACTION_BLUETOOTH_SETTINGS));
-            }
-        });
-        settings3G = (ImageView)findViewById(R.id.settings3G);
-        settings3G.setImageDrawable(getResources().getDrawable(R.drawable.ic_signal_cellular_4_bar_black_48dp));
-        settings3G.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent();
-                intent.setComponent(new ComponentName("com.android.settings","com.android.settings.Settings$DataUsageSummaryActivity"));
-                startActivity(intent);
-            }
-        });
-        settingsLocation = (ImageView)findViewById(R.id.settingsLocation);
-        settingsLocation.setImageDrawable(getResources().getDrawable(R.drawable.ic_location_on_black_48dp));
-        settingsLocation.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS));
-            }
-        });
-        call = (ImageView) findViewById(R.id.call);
-        call.setImageDrawable(getResources().getDrawable(R.drawable.ic_call_black_48dp));
-        call.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                cueWarning("Función deshabilitada");
-            }
-        });
-        sms = (ImageView) findViewById(R.id.sms);
-        sms.setImageDrawable(getResources().getDrawable(R.drawable.ic_textsms_black_48dp));
-        sms.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                cueWarning("Función deshabilitada");
-            }
-        });
-        camera = (ImageView) findViewById(R.id.cameraSettings);
-        camera.setImageDrawable(getResources().getDrawable(R.drawable.ic_camera_alt_black_48dp));
-        camera.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent launchIntent = getPackageManager().getLaunchIntentForPackage("com.lenovo.camera");
-                startActivity(launchIntent);
-            }
-        });
-        lock = (ImageView) findViewById(R.id.lock);
-        lock.setImageDrawable(getResources().getDrawable(R.drawable.ic_lock_black_48dp));
-        lock.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showAddItemDialog(MainActivity.this);
-            }
-        });
-        unlock = (ImageView) findViewById(R.id.unlock);
-        unlock.setImageDrawable(getResources().getDrawable(R.drawable.ic_lock_open_black_48dp));
-        unlock.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                addClickListenerLogout();
-            }
-        });
-    }
-    /******ClickListener de los botones*******/
-    public void addClickListenerChrome(){
-        chromeIcon.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent launchIntent = getPackageManager().getLaunchIntentForPackage("com.embarcadero.OperaWeb");
-                startActivity(launchIntent);
-            }
-        });
-    }
-    public void addClickListenerAdmCensal(){
-        admCensalIcon.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent launchIntent = getPackageManager().getLaunchIntentForPackage("com.embarcadero.AdmCensal");
-                startActivity(launchIntent);
-            }
-        });
-    }
-    public void addClickListenerExplorerEnt(){
-        final PackageManager pm = this.getPackageManager();
-        explorerIcon.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (isAdmin) {
-                    if (isPackageInstalled("com.android.filemanager", pm)){
-                        Intent launchIntent = getPackageManager().getLaunchIntentForPackage("com.android.filemanager");
-                        startActivity(launchIntent);
-                    } else if (isPackageInstalled("com.android.settings", pm)){
-                        Intent intent = new Intent();
-                        intent.setComponent(new ComponentName("com.android.settings","com.android.settings.Settings$StorageSettingsActivity"));
-                        startActivity(intent);
-                    } else {
-                        cueError("Error");
-                    }
-                } else {
-                    cueError("No cuenta con los permisos");
-                }
-            }
-        });
-    }
-    public void addClickListenerExplorer(){
-        final PackageManager pm = this.getPackageManager();
-        explorerIcon.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (isPackageInstalled("com.android.filemanager", pm)){
-                    Intent launchIntent = getPackageManager().getLaunchIntentForPackage("com.android.filemanager");
-                     startActivity(launchIntent);
-                } else if (isPackageInstalled("com.android.settings", pm)){
-                    Intent intent = new Intent();
-                    intent.setComponent(new ComponentName("com.android.settings","com.android.settings.Settings$StorageSettingsActivity"));
-                    startActivity(intent);
-                } else {
-                    cueError("Error");
-                }
-            }
-        });
-    }
-    public void addClickListenerCapa(){
-            capaIcon.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Intent launchIntent = getPackageManager().getLaunchIntentForPackage("io.cordova.CAPACITACIONECB");
-                    startActivity(launchIntent);
-                }
-            });
-    }
-    public void addClickListenerMCC(){
-        mccIcon.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent launchIntent = getPackageManager().getLaunchIntentForPackage("com.embarcadero.mcc");
-                startActivity(launchIntent);
-            }
-        });
-    }
-    public void addClickListenerTrans(){
-        transIcon.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (isAdmin) {
-                    Intent launchIntent = getPackageManager().getLaunchIntentForPackage("com.example.diegocasas.descarto");
-                    startActivity(launchIntent);
-                } else {
-                   cueError("No cuenta con los permisos");
-                }
-            }
-        });
-    }
-    private void addClickListenerLogout() {
-        isAdmin = false;
-        lock.setVisibility(View.VISIBLE);
-        unlock.setVisibility(View.INVISIBLE);
-        cueError("Sin permisos de administrador");
-    }
-    /*****Obtener icono de la app******/
-    public static Drawable getActivityIcon(Context context, String packageName, String activityName) {
-        PackageManager pm = context.getPackageManager();
-        Intent intent = new Intent();
-        intent.setComponent(new ComponentName(packageName, activityName));
-        ResolveInfo resolveInfo = pm.resolveActivity(intent, 0);
-        return resolveInfo.loadIcon(pm);
-    }
-    /*****Obtener nombre de la app******/
-    public String getAppName(String packageName){
-        final PackageManager pm = getApplicationContext().getPackageManager();
-        ApplicationInfo ai;
-        try {
-            ai = pm.getApplicationInfo( packageName, 0);
-        } catch (final PackageManager.NameNotFoundException e) {
-            ai = null;
-        }
-        final String applicationName = (String) (ai != null ? pm.getApplicationLabel(ai) : "(unknown)");
-        return  applicationName;
-    }
     /*****Deshabilitar back******/
     @Override
     public void onBackPressed() {
-        cueWarning("Opción deshabilitada");
+        cueMsg.cueWarning("Opción deshabilitada");
     }
     /*****Deshabilitar controles de volumen******/
     @Override
@@ -563,33 +182,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
         manager.addView(view, localLayoutParams);
     }
-    /*******Dialog contraseña de usuario*******/
-    public void showAddItemDialog(Context c) {
-        final EditText taskEditText = new EditText(c);
-        taskEditText.setTransformationMethod(PasswordTransformationMethod.getInstance());
-        AlertDialog dialog = new AlertDialog.Builder(c)
-                .setTitle("Permisos de administrador")
-                .setMessage("Ingrese la contraseña")
-                .setView(taskEditText)
-                .setPositiveButton("Aceptar", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        String pass = String.valueOf(taskEditText.getText());
-                        if (pass.equals("INEGIKIOSCO2018")){
-                            isAdmin = true;
-                            lock.setVisibility(View.INVISIBLE);
-                            unlock.setVisibility(View.VISIBLE);
-                           cueCorrect("Contraseña correcta");
-                        } else {
-                            cueError("Contraseña incorrecta");
-                            isAdmin = false;
-                        }
-                    }
-                })
-                .setNegativeButton("Cancelar", null)
-                .create();
-        dialog.show();
-    }
+
     /***Programación de trabajo (Services)*****///
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     public void startJob(double lat, double lon){
@@ -614,18 +207,18 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         }
     }
     public void getLocation() {
-        try {
+        /**try {
             locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
             locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 5000, 5, (LocationListener) this);
         }
         catch(SecurityException e) {
             e.printStackTrace();
-        }
+        }**/
     }
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     public void onLocationChanged(Location location) {
-                startJob(location.getLatitude(),location.getLongitude());
+                /**startJob(location.getLatitude(),location.getLongitude());
                 locationText.setText("Latitude: " + location.getLatitude() + "\n Longitude: " + location.getLongitude());
         try {
             Geocoder geocoder = new Geocoder(this, Locale.getDefault());
@@ -633,7 +226,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             locationText.setText(locationText.getText() + "\n"+addresses.get(0).getAddressLine(0)+", "+
                     addresses.get(0).getAddressLine(1)+", "+addresses.get(0).getAddressLine(2));
 
-        }catch(Exception e){ }
+        }catch(Exception e){ }**/
     }
     @Override
     public void onStatusChanged(String provider, int status, Bundle extras) {
@@ -645,86 +238,5 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     public void onProviderDisabled(String provider) {
         Toast.makeText(this, "Favor de habilitar su GPS", Toast.LENGTH_SHORT).show();
     }
-    private boolean isPackageInstalled(String packagename, PackageManager packageManager) {
-        try {
-            packageManager.getPackageInfo(packagename, 0);
-            return true;
-        } catch (PackageManager.NameNotFoundException e) {
-            return false;
-        }
-    }
-    public void cueError(String msg){
-        Cue.init()
-                .with(MainActivity.this)
-                .setMessage(msg)
-                .setGravity(Gravity.CENTER_HORIZONTAL | Gravity.CENTER_VERTICAL)
-                .setType(Type.CUSTOM)
-                .setDuration(Duration.SHORT)
-                .setBorderWidth(5)
-                .setCornerRadius(10)
-                .setCustomFontColor(Color.parseColor("#FA5858"),
-                        Color.parseColor("#ffffff"),
-                        Color.parseColor("#e84393"))
-                .setPadding(30)
-                .setTextSize(15)
-                .show();
-    }
-    public void cueCorrect(String msg){
-        Cue.init()
-                .with(MainActivity.this)
-                .setMessage(msg)
-                .setGravity(Gravity.CENTER_HORIZONTAL | Gravity.CENTER_VERTICAL)
-                .setType(Type.CUSTOM)
-                .setDuration(Duration.SHORT)
-                .setBorderWidth(5)
-                .setCornerRadius(10)
-                .setCustomFontColor(Color.parseColor("#088A85"), //fondo
-                        Color.parseColor("#ffffff"), //letra
-                        Color.parseColor("#01DFD7")) //contorno
-                .setPadding(30)
-                .setTextSize(15)
-                .show();
-    }
-    public void cueWarning(String msg){
-        Cue.init()
-                .with(MainActivity.this)
-                .setMessage(msg)
-                .setGravity(Gravity.CENTER_HORIZONTAL | Gravity.CENTER_VERTICAL)
-                .setType(Type.CUSTOM)
-                .setDuration(Duration.SHORT)
-                .setBorderWidth(5)
-                .setCornerRadius(10)
-                .setCustomFontColor(Color.parseColor("#DF7401"), //fondo
-                        Color.parseColor("#ffffff"), //letra
-                        Color.parseColor("#DBA901")) //contorno
-                .setPadding(30)
-                .setTextSize(15)
-                .show();
-    }
-    /**********************************Base de datos de Login**********************************/
-    public void hideLogin(){
-        btnLogin.setVisibility(View.INVISIBLE);
-        edtPassword.setVisibility(View.INVISIBLE);
-        edtUsername.setVisibility(View.INVISIBLE);
-    }
-    public void showAlertDialogButtonClicked() {
-        // setup the alert builder
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Finalizar sesión");
-        builder.setMessage("¿Está seguro?");
-        // add the buttons
-        builder.setPositiveButton("Continuar", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                databaseHelper.clearColumn();
-                cueError("Finalizó la sesión");
-                finish();
-                startActivity(getIntent());
-            }
-        });
-        builder.setNegativeButton("Cancelar", null);
-        // create and show the alert dialog
-        AlertDialog dialog = builder.create();
-        dialog.show();
-    }
+
 }
