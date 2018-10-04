@@ -1,5 +1,6 @@
 package com.example.diegocasas.customlauncher;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
@@ -29,6 +30,7 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.media.Image;
+import android.net.Uri;
 import android.os.Build;
 import android.os.PersistableBundle;
 import android.provider.Settings;
@@ -79,6 +81,7 @@ import services.TimeService;
 public class MainActivity extends AppCompatActivity implements LocationListener {
     public final List blockedKeys = new ArrayList(Arrays.asList(KeyEvent.KEYCODE_VOLUME_DOWN, KeyEvent.KEYCODE_VOLUME_UP));
     private static final String TAG = "MainActivity";
+    private static final int MY_PERMISSION_REQUEST_STORAGE = 1;
     String c_oper;
     LocationManager locationManager;
     int brightness = 204;
@@ -90,48 +93,70 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     DatabaseHelper databaseHelper;
     CueMsg cueMsg = new CueMsg(MainActivity.this);
 
+
     @RequiresApi(api = Build.VERSION_CODES.M)
     @SuppressLint("ResourceType")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+            /**if (!Settings.canDrawOverlays(this)) {
+                Intent myIntent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION);
+                myIntent.setData(Uri.parse("package:" + getPackageName()));
+                startActivityForResult(myIntent, 101);
+            }**/
+                /********Base de datos**********/
+                btnLogin = (Button) findViewById(R.id.btn_login);
+                edtUsername = (EditText) findViewById(R.id.et_username);
+                edtPassword = (EditText) findViewById(R.id.et_password);
 
-        /********Base de datos**********/
-        btnLogin = (Button) findViewById(R.id.btn_login);
-        edtUsername = (EditText) findViewById(R.id.et_username);
-        edtPassword = (EditText) findViewById(R.id.et_password);
+                databaseHelper = new DatabaseHelper(MainActivity.this);
 
-        databaseHelper = new DatabaseHelper(MainActivity.this);
+                btnLogin.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        boolean isSup = databaseHelper.checkUserSup(edtUsername.getText().toString(), edtPassword.getText().toString());
+                        boolean isEnt = databaseHelper.checkUserEnt(edtUsername.getText().toString(), edtPassword.getText().toString());
+                        c_oper = edtUsername.getText().toString();
+                        if (isSup) {
+                            databaseHelper.updateAccessSup(edtUsername.getText().toString(), edtPassword.getText().toString());
+                            cueMsg.cueCorrect("Bienvenido Supervisor: " + edtUsername.getText().toString());
+                            Intent i = new Intent(MainActivity.this, Second.class);
+                            i.putExtra("profile", true);
+                            i.putExtra("ClaveOperativa", c_oper);
+                            startActivity(i);
+                        } else if (isEnt) {
+                            databaseHelper.updateAccessEnt(edtUsername.getText().toString(), edtPassword.getText().toString());
+                            cueMsg.cueCorrect("Bienvenido Entrevistador: " + edtUsername.getText().toString());
+                            Intent i = new Intent(MainActivity.this, Second.class);
+                            i.putExtra("profile", false);
+                            i.putExtra("ClaveOperativa", c_oper);
+                            startActivity(i);
+                        } else {
+                            edtPassword.setText(null);
+                            cueMsg.cueError("Usuario o contraseña invalido");
+                        }
+                    }
+                });
+                preventStatusBarExpansion(this);
+        }
 
-        btnLogin.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                boolean isSup = databaseHelper.checkUserSup(edtUsername.getText().toString(), edtPassword.getText().toString());
-                boolean isEnt = databaseHelper.checkUserEnt(edtUsername.getText().toString(), edtPassword.getText().toString());
-                c_oper = edtUsername.getText().toString();
-                if(isSup){
-                    databaseHelper.updateAccessSup(edtUsername.getText().toString(), edtPassword.getText().toString());
-                    cueMsg.cueCorrect("Bienvenido Supervisor: " + edtUsername.getText().toString());
-                    Intent i = new Intent(MainActivity.this, Second.class);
-                    i.putExtra("profile", true);
-                    i.putExtra("ClaveOperativa", c_oper);
-                    startActivity(i);
-                } else if (isEnt){
-                    databaseHelper.updateAccessEnt(edtUsername.getText().toString(), edtPassword.getText().toString());
-                    cueMsg.cueCorrect("Bienvenido Entrevistador: " + edtUsername.getText().toString());
-                    Intent i = new Intent(MainActivity.this, Second.class);
-                    i.putExtra("profile", false);
-                    i.putExtra("ClaveOperativa", c_oper);
-                    startActivity(i);
-                } else {
-                    edtPassword.setText(null);
-                    cueMsg.cueError("Usuario o contraseña invalido");
-                }
+
+    /************Storage Permission*****************/
+    public void storagePermission(){
+        if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED){
+            if (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE)){
+                ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, MY_PERMISSION_REQUEST_STORAGE);
+            } else {
+                ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, MY_PERMISSION_REQUEST_STORAGE);
             }
-        });
-        preventStatusBarExpansion(this);
-
+        }else {
+            //no hace nada
+        }
+    }
+    /***************Brightness Permission*****************/
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    public void brightnessPermission(){
         boolean settingsCanWrite = Settings.System.canWrite(MainActivity.this);
         if (!settingsCanWrite){
             Log.d("Brightness", "No se tiene permisos de escritura de opciones");
@@ -139,9 +164,10 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             startActivity(intent);
         } else {
             Log.d("Brightness", "Si se tuvo permisos");
-            ContentResolver cResolver = this.getApplicationContext().getContentResolver();
+            ContentResolver cResolver = MainActivity.this.getApplicationContext().getContentResolver();
             Settings.System.putInt(cResolver, Settings.System.SCREEN_BRIGHTNESS, brightness);
         }
+
     }
     /*****Deshabilitar back******/
     @Override
@@ -238,5 +264,4 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     public void onProviderDisabled(String provider) {
         Toast.makeText(this, "Favor de habilitar su GPS", Toast.LENGTH_SHORT).show();
     }
-
 }

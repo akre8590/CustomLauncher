@@ -3,6 +3,7 @@ package com.example.diegocasas.customlauncher;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ComponentName;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -10,7 +11,11 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
+import android.provider.Settings;
+import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 
@@ -19,6 +24,7 @@ public class EnableFeatures extends AppCompatActivity {
     CueMsg cueMsg = new CueMsg(EnableFeatures.this);
     DatabaseHelper databaseHelper;
     Activity activity;
+    int brightness = 204;
 
     public EnableFeatures(Activity activity){
         this.activity = activity;
@@ -64,6 +70,5 @@ public class EnableFeatures extends AppCompatActivity {
         ResolveInfo resolveInfo = pm.resolveActivity(intent, 0);
         return resolveInfo.loadIcon(pm);
     }
-
 }
 

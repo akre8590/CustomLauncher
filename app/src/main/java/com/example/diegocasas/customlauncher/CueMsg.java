@@ -40,7 +40,7 @@ public class CueMsg {
                 .setDuration(Duration.SHORT)
                 .setBorderWidth(5)
                 .setCornerRadius(10)
-                .setCustomFontColor(Color.parseColor("#088A85"), //fondo
+                .setCustomFontColor(Color.parseColor("#04B431"), //fondo
                         Color.parseColor("#ffffff"), //letra
                         Color.parseColor("#01DFD7")) //contorno
                 .setPadding(30)
@@ -56,7 +56,7 @@ public class CueMsg {
                 .setDuration(Duration.SHORT)
                 .setBorderWidth(5)
                 .setCornerRadius(10)
-                .setCustomFontColor(Color.parseColor("#DF7401"), //fondo
+                .setCustomFontColor(Color.parseColor("#FE642E"), //fondo
                         Color.parseColor("#ffffff"), //letra
                         Color.parseColor("#DBA901")) //contorno
                 .setPadding(30)

@@ -11,6 +11,7 @@
 
     <!--         info logueado            -->
 
+
     <View
         android:id="@+id/viewBarBottom"
         android:layout_width="match_parent"

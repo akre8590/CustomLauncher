@@ -12,6 +12,7 @@ import android.os.Bundle;
 import android.text.method.PasswordTransformationMethod;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -24,7 +25,6 @@ public class Second extends AppCompatActivity {
     DatabaseHelper databaseHelper;
     CueMsg cueMsg = new CueMsg(Second.this);
     EnableFeatures enableFeatures = new EnableFeatures(Second.this);
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,7 +65,7 @@ public class Second extends AppCompatActivity {
         btnLogout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-           showAlertDialogButtonClicked();
+                showAlertDialogButtonClicked();
             }
         });
         PackageManager pm = this.getPackageManager();
@@ -90,9 +90,16 @@ public class Second extends AppCompatActivity {
             capaName = (TextView) findViewById(R.id.mccName);
             capaName.setText(enableFeatures.getAppName("io.cordova.CAPACITACIONECB"));
             addClickListenerCapa();
+        } else if (enableFeatures.isPackageInstalled("io.cordova.CAPACITACION", pm)){
+            capaIcon = (ImageView) findViewById(R.id.mcc);
+            capaIcon.setImageDrawable(enableFeatures.getActivityIcon("io.cordova.CAPACITACION", "io.cordova.CAPACITACION.MainActivity"));
+            capaName = (TextView) findViewById(R.id.mccName);
+            capaName.setText(enableFeatures.getAppName("io.cordova.CAPACITACION"));
+            addClickListenerCapa();
         } else {
             cueMsg.cueWarning("No se encuentra la aplicación CAAP");
-        }if (enableFeatures.isPackageInstalled("com.embarcadero.AdmCensal", pm)){
+        }
+        if (enableFeatures.isPackageInstalled("com.embarcadero.AdmCensal", pm)){
             admCensalIcon = (ImageView) findViewById(R.id.admCensal);
             admCensalIcon.setImageDrawable(enableFeatures.getActivityIcon( "com.embarcadero.AdmCensal", "com.embarcadero.firemonkey.FMXNativeActivity"));
             admCensalName = (TextView) findViewById(R.id.admCensaltxt);
@@ -107,7 +114,7 @@ public class Second extends AppCompatActivity {
         btnLogout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-             showAlertDialogButtonClicked();
+                showAlertDialogButtonClicked();
             }
         });
         PackageManager pm = this.getPackageManager();
@@ -137,9 +144,15 @@ public class Second extends AppCompatActivity {
         }
         if (enableFeatures.isPackageInstalled("io.cordova.CAPACITACIONECB", pm)){
             capaIcon = (ImageView) findViewById(R.id.capaButton);
-            capaIcon.setImageDrawable(enableFeatures.getActivityIcon( "io.cordova.CAPACITACIONECB", "io.cordova.CAPACITACIONECB.MainActivity"));
+            capaIcon.setImageDrawable(enableFeatures.getActivityIcon("io.cordova.CAPACITACIONECB", "io.cordova.CAPACITACIONECB.MainActivity"));
             capaName = (TextView) findViewById(R.id.capaName);
             capaName.setText(enableFeatures.getAppName("io.cordova.CAPACITACIONECB"));
+            addClickListenerCapa();
+        } else if (enableFeatures.isPackageInstalled("io.cordova.CAPACITACION", pm)){
+            capaIcon = (ImageView) findViewById(R.id.capaButton);
+            capaIcon.setImageDrawable(enableFeatures.getActivityIcon("io.cordova.CAPACITACION", "io.cordova.CAPACITACION.MainActivity"));
+            capaName = (TextView) findViewById(R.id.capaName);
+            capaName.setText(enableFeatures.getAppName("io.cordova.CAPACITACION"));
             addClickListenerCapa();
         } else {
             cueMsg.cueWarning("No se encuentra la aplicación CAAP");
@@ -321,11 +334,19 @@ public class Second extends AppCompatActivity {
         });
     }
     public void addClickListenerCapa(){
+        final PackageManager pm = this.getPackageManager();
         capaIcon.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent launchIntent = getPackageManager().getLaunchIntentForPackage("io.cordova.CAPACITACIONECB");
-                startActivity(launchIntent);
+                if (enableFeatures.isPackageInstalled("io.cordova.CAPACITACIONECB",pm)){
+                    Intent launchIntent = getPackageManager().getLaunchIntentForPackage("io.cordova.CAPACITACIONECB");
+                    startActivity(launchIntent);
+                } else if (enableFeatures.isPackageInstalled("io.cordova.CAPACITACION", pm)){
+                    Intent launchIntent = getPackageManager().getLaunchIntentForPackage("io.cordova.CAPACITACION");
+                    startActivity(launchIntent);
+                } else {
+                    cueMsg.cueError("Error");
+                }
             }
         });
     }
@@ -410,10 +431,10 @@ public class Second extends AppCompatActivity {
     public void onBackPressed() {
         cueMsg.cueWarning("Opción deshabilitada");
     }
-    @Override
+   /** @Override
     protected void onStop() {
         super.onStop();
         databaseHelper.clearColumn();
         isAdmin = false;
-    }
+    }**/
 }
