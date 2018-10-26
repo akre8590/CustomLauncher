@@ -174,14 +174,12 @@ public class Second extends AppCompatActivity {
         } else {
             cueMsg.cueWarning("No se encuentra la aplicación MCC");
         }
-        if (enableFeatures.isPackageInstalled("com.example.diegocasas.descarto",pm)){
-            transIcon = (ImageView) findViewById(R.id.transfer);
-            transIcon.setImageDrawable(getResources().getDrawable(R.drawable.ic_open_with_black_48dp));
-            transName = (TextView) findViewById(R.id.transferName);
-            transName.setText("Instalación de Cartografía");
-            addClickListenerTrans();
-        } else {
-        }
+        transIcon = (ImageView) findViewById(R.id.transfer);
+        transIcon.setImageDrawable(getResources().getDrawable(R.drawable.ic_open_with_black_48dp));
+        transName = (TextView) findViewById(R.id.transferName);
+        transName.setText("Instalación de Cartografía");
+        addClickListenerTrans();
+
     }
     /*********Elementos de la barra de opciones***********/
     public void showBarElements(){
@@ -364,8 +362,8 @@ public class Second extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (isAdmin) {
-                    Intent launchIntent = getPackageManager().getLaunchIntentForPackage("com.example.diegocasas.descarto");
-                    startActivity(launchIntent);
+                    Intent intent = new Intent(Second.this, DesCarto.class);
+                    startActivity(intent);
                 } else {
                     cueMsg.cueError("No cuenta con los permisos");
                 }

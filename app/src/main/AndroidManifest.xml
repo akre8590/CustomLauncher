@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="com.example.diegocasas.customlauncher">
 
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
@@ -29,7 +30,8 @@
         android:label="KioscoINEGI"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme">
+        android:theme="@style/AppTheme"
+        tools:replace="android:label">
         <activity
             android:name=".MainActivity"
             android:screenOrientation="portrait">
@@ -48,8 +50,10 @@
             android:permission="android.permission.BIND_JOB_SERVICE" />
         <service android:name="services.LocationService" />
 
-        <activity android:name=".Second"
-            android:screenOrientation="portrait">
-        </activity>
+        <activity
+            android:name=".Second"
+            android:screenOrientation="portrait"></activity>
+        <activity android:name=".DesCarto"></activity>
     </application>
+
 </manifest>

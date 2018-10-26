@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFFF">
+
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Instalación de Cartográfica"
+        android:textSize="25dp"
+        android:layout_marginTop="20dp"
+        android:layout_centerHorizontal="true"
+        android:layout_alignParentTop="true"
+        android:id="@+id/title"/>
+    <View
+        android:id="@+id/line"
+        android:layout_marginTop="20dp"
+        android:layout_below="@+id/title"
+        android:layout_width="match_parent"
+        android:layout_height="7dp"
+        android:background="@android:color/darker_gray"/>
+    <Button
+        android:layout_centerHorizontal="true"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="ENTIDAD"
+        android:id="@+id/buttonEntidad"
+        android:layout_below="@id/line"
+        android:layout_marginLeft="20dp"
+        android:layout_marginTop="20dp"
+        />
+    <TextView
+        android:layout_centerHorizontal="true"
+        android:id="@+id/entidadTxt"
+        android:textSize="20dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/buttonEntidad"
+        android:layout_marginLeft="20dp"
+        android:layout_marginTop="20dp"/>
+
+    <Button
+        android:layout_centerHorizontal="true"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="RA"
+        android:id="@+id/btnRA07"
+        android:layout_below="@id/entidadTxt"
+        android:layout_marginLeft="20dp"
+        android:layout_marginTop="20dp"
+        android:visibility="invisible"
+        />
+    <Button
+        android:layout_centerHorizontal="true"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="RA"
+        android:id="@+id/btnRA08"
+        android:layout_below="@id/entidadTxt"
+        android:layout_marginLeft="20dp"
+        android:layout_marginTop="20dp"
+        android:visibility="invisible"/>
+    <TextView
+        android:layout_centerHorizontal="true"
+        android:id="@+id/RATxt"
+        android:textSize="20dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/btnRA08"
+        android:layout_marginLeft="20dp"
+        android:layout_marginTop="20dp"/>
+    <Button
+        android:textColor="#FFFF"
+        android:background="#FE0000"
+        android:layout_marginBottom="20dp"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginLeft="20dp"
+        android:layout_marginTop="20dp"
+        android:onClick="salir"
+        android:text="SALIR"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+</RelativeLayout>

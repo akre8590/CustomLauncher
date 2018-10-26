@@ -47,5 +47,15 @@
         android:layout_marginTop="30dp"
         android:background="#2E64FE"
         android:text=" ACCEDER" />
+    <Button
+        android:textColor="#FFFFFF"
+        android:id="@+id/download"
+        android:layout_width="300dp"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@id/btn_login"
+        android:layout_marginTop="30dp"
+        android:background="#2E64FE"
+        android:text=" DOWNLOAD" />
 
 </RelativeLayout>
