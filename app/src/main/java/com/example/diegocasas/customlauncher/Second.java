@@ -197,7 +197,7 @@ public class Second extends AppCompatActivity {
             }
         });
         settingsWifi = (ImageView) findViewById(R.id.settingsWifi);
-        settingsWifi.setImageDrawable(getResources().getDrawable(R.drawable.ic_signal_wifi_4_bar_black_48dp));
+        settingsWifi.setImageDrawable(getResources().getDrawable(R.drawable.ic_icons8_wi_fi_96));
         settingsWifi.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -213,7 +213,7 @@ public class Second extends AppCompatActivity {
             }
         });
         settings3G = (ImageView)findViewById(R.id.settings3G);
-        settings3G.setImageDrawable(getResources().getDrawable(R.drawable.ic_signal_cellular_4_bar_black_48dp));
+        settings3G.setImageDrawable(getResources().getDrawable(R.drawable.baseline_signal_cellular_alt_black_48));
         settings3G.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

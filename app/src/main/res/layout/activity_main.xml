@@ -9,8 +9,6 @@
     android:background="@drawable/opera"
     android:focusableInTouchMode="true">
 
-
-
     <!--         Login            -->
     <com.rengwuxian.materialedittext.MaterialEditText
         app:met_primaryColor="@color/colorPrimaryDark"
@@ -57,5 +55,5 @@
         android:layout_marginTop="30dp"
         android:background="#2E64FE"
         android:text=" DOWNLOAD" />
-
+    
 </RelativeLayout>

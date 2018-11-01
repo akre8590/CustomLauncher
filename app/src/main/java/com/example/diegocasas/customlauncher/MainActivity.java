@@ -31,6 +31,8 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.media.Image;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -95,10 +97,9 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     String c_oper;
     LocationManager locationManager;
     int brightness = 204;
-
+    /**********Download file***************/
     private ProgressDialog pDialog;
     public static final int progress_bar_type = 0;
-
     // File url to download
     //private static String file_url = "https://retrofit2androidmysqlphp.000webhostapp.com/mcc_071A.zip";
     private static String file_url = "https://firebasestorage.googleapis.com/v0/b/festival-13bd8.appspot.com/o/version1.apk?alt=media&token=43420512-f1d9-4ee6-a02a-ef43d293fecf";
@@ -159,7 +160,11 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         btnDownload.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                new DownloadFileFromURL().execute(file_url);
+                if(isOnline()){
+                    new DownloadFileFromURL().execute(file_url);
+                }else{
+                   cueMsg.cueError("No hay conexión a Internet");
+                }
             }
         });
         }
@@ -287,6 +292,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     public void onProviderDisabled(String provider) {
         Toast.makeText(this, "Favor de habilitar su GPS", Toast.LENGTH_SHORT).show();
     }
+    /*******************Download files from external server***************/
     @Override
     protected Dialog onCreateDialog(int id) {
         switch (id) {
@@ -303,7 +309,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 return null;
         }
     }
-
     /**
      * Background Async Task to download file
      * */
@@ -373,7 +378,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             // setting progress percentage
             pDialog.setProgress(Integer.parseInt(progress[0]));
         }
-
         /**
          * After completing background task Dismiss the progress dialog
          * **/
@@ -390,6 +394,15 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(intent);
         }
-
+    }
+    /************************Chek if internet connection exits***********/
+    protected boolean isOnline() {
+        ConnectivityManager cm = (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo netInfo = cm.getActiveNetworkInfo();
+        if (netInfo != null && netInfo.isConnectedOrConnecting()) {
+            return true;
+        } else {
+            return false;
+        }
     }
 }
