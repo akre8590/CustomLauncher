@@ -1,5 +1,6 @@
 package com.example.diegocasas.customlauncher;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ComponentName;
@@ -14,7 +15,9 @@ import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.provider.Settings;
 import android.support.annotation.RequiresApi;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
@@ -69,6 +72,25 @@ public class EnableFeatures extends AppCompatActivity {
         intent.setComponent(new ComponentName(packageName, activityName));
         ResolveInfo resolveInfo = pm.resolveActivity(intent, 0);
         return resolveInfo.loadIcon(pm);
+    }
+    /*************************Get IMEI**************************************/
+    public String getIMEI (){
+        try {
+            TelephonyManager telephonyManager = (TelephonyManager) activity.getSystemService(Context.TELEPHONY_SERVICE);
+            if (ActivityCompat.checkSelfPermission(activity, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED){
+                return "";
+            }
+            String imei = telephonyManager.getDeviceId();
+            Log.e("IMEI", "=" + imei);
+            if (imei != null && !imei.isEmpty()){
+                return imei;
+            } else {
+                return Build.SERIAL;
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return "No encontrado";
     }
 }
 

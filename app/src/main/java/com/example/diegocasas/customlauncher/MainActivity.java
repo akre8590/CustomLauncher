@@ -38,11 +38,13 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.PersistableBundle;
 import android.provider.Settings;
+import android.provider.Telephony;
 import android.support.annotation.RequiresApi;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.telephony.TelephonyManager;
 import android.text.method.PasswordTransformationMethod;
 import android.util.Log;
 import android.view.Gravity;
@@ -121,7 +123,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 Intent myIntent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION);
                 myIntent.setData(Uri.parse("package:" + getPackageName()));
                 startActivityForResult(myIntent, 101);
-            }**/
+                    }**/
                 /********Base de datos**********/
                 btnLogin = (Button) findViewById(R.id.btn_login);
                 btnDownload = (Button) findViewById(R.id.download);
@@ -160,16 +162,16 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         btnDownload.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(isOnline()){
+               EnableFeatures enableFeatures = new EnableFeatures(MainActivity.this);
+               enableFeatures.getIMEI();
+                /**if(isOnline()){
                     new DownloadFileFromURL().execute(file_url);
                 }else{
                    cueMsg.cueError("No hay conexión a Internet");
-                }
+                }**/
             }
         });
-        }
-
-
+    }
     /************Storage Permission*****************/
     public void storagePermission(){
         if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED){
@@ -380,7 +382,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         }
         /**
          * After completing background task Dismiss the progress dialog
-         * **/
+         ***/
         @Override
         protected void onPostExecute(String file_url) {
             // dismiss the dialog after the file was downloaded

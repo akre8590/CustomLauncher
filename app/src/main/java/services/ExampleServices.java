@@ -66,6 +66,7 @@ public class ExampleServices extends JobService  {
         longitude = params.getExtras().getDouble("lon");
         Log.d("LATITUDE_LONGITUDE", "LATITUDE & LONGITUDE: " + latitude + " " + longitude);
 
+
         stringOS = Build.VERSION.RELEASE;
         stringModel = Build.MODEL;
         stringManufacturer = Build.MANUFACTURER;

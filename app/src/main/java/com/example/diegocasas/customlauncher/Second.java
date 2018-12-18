@@ -179,7 +179,6 @@ public class Second extends AppCompatActivity {
         transName = (TextView) findViewById(R.id.transferName);
         transName.setText("Instalación de Cartografía");
         addClickListenerTrans();
-
     }
     /*********Elementos de la barra de opciones***********/
     public void showBarElements(){
