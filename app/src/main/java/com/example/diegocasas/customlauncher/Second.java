@@ -12,9 +12,13 @@ import android.os.Bundle;
 import android.text.method.PasswordTransformationMethod;
 import android.view.View;
 import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import com.jaredrummler.android.processes.AndroidProcesses;
+import com.jaredrummler.android.processes.models.AndroidAppProcess;
+
+import java.util.List;
 
 public class Second extends AppCompatActivity {
 
@@ -285,8 +289,12 @@ public class Second extends AppCompatActivity {
         admCensalIcon.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent launchIntent = getPackageManager().getLaunchIntentForPackage("com.embarcadero.AdmCensal");
-                startActivity(launchIntent);
+                if (getAppsBackground("com.embarcadero.mcc")) {
+                    cueMsg.cueError("La aplicación MCC está en ejecución en segundo plano");
+                } else {
+                    Intent launchIntent = getPackageManager().getLaunchIntentForPackage("com.embarcadero.AdmCensal");
+                    startActivity(launchIntent);
+                }
             }
         });
     }
@@ -351,8 +359,12 @@ public class Second extends AppCompatActivity {
         mccIcon.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent launchIntent = getPackageManager().getLaunchIntentForPackage("com.embarcadero.mcc");
-                startActivity(launchIntent);
+                if (getAppsBackground("com.embarcadero.AdmCensal")){
+                    cueMsg.cueError("La aplicación AdmCensal está en ejecución en segundo plano");
+                }else {
+                    Intent launchIntent = getPackageManager().getLaunchIntentForPackage("com.embarcadero.mcc");
+                    startActivity(launchIntent);
+                }
             }
         });
     }
@@ -427,6 +439,20 @@ public class Second extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         cueMsg.cueWarning("Opción deshabilitada");
+    }
+    public boolean getAppsBackground(String pkg){
+        boolean pkgBoolean = false ;
+        List<AndroidAppProcess> processes = AndroidProcesses.getRunningAppProcesses();
+
+        for (AndroidAppProcess process : processes) {
+            String processName = process.name;
+            if (processName.contains(pkg)){
+                pkgBoolean = true;
+            } else {
+                pkgBoolean = false;
+            }
+        }
+        return pkgBoolean;
     }
    /** @Override
     protected void onStop() {

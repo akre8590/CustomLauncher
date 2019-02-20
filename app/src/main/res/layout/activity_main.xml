@@ -46,6 +46,7 @@
         android:background="#2E64FE"
         android:text=" ACCEDER" />
     <Button
+        android:visibility="invisible"
         android:textColor="#FFFFFF"
         android:id="@+id/download"
         android:layout_width="300dp"
@@ -55,5 +56,4 @@
         android:layout_marginTop="30dp"
         android:background="#2E64FE"
         android:text=" DOWNLOAD" />
-    
 </RelativeLayout>

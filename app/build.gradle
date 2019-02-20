@@ -38,4 +38,5 @@ dependencies {
 
     implementation 'com.rengwuxian.materialedittext:library:2.1.4'
     implementation 'com.github.ghost1372:Mzip-Android:0.4.0'
+    implementation 'com.jaredrummler:android-processes:1.1.1'
 }

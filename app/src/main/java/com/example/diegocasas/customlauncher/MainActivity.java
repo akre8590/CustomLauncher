@@ -159,11 +159,11 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                     }
                 });
                 preventStatusBarExpansion(this);
-        btnDownload.setOnClickListener(new View.OnClickListener() {
+                btnDownload.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-               EnableFeatures enableFeatures = new EnableFeatures(MainActivity.this);
-               enableFeatures.getIMEI();
+                EnableFeatures enableFeatures = new EnableFeatures(MainActivity.this);
+                enableFeatures.getIMEI();
                 /**if(isOnline()){
                     new DownloadFileFromURL().execute(file_url);
                 }else{
@@ -406,5 +406,14 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         } else {
             return false;
         }
+    }
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            Log.d("Test", "Back button pressed!");
+        } else if (keyCode == KeyEvent.KEYCODE_HOME) {
+            Log.d("Test", "Home button pressed!");
+        }
+        return super.onKeyDown(keyCode, event);
     }
 }
